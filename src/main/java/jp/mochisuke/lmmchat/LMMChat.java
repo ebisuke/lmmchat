@@ -2,9 +2,12 @@ package jp.mochisuke.lmmchat;
 
 import com.mojang.logging.LogUtils;
 import jp.mochisuke.lmmchat.chat.ChatGenerationRequest;
+import jp.mochisuke.lmmchat.chat.ChatPreface;
 import jp.mochisuke.lmmchat.chat.ChatThread;
+import jp.mochisuke.lmmchat.order.AIOrderDefinitions;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -29,7 +32,7 @@ import org.slf4j.Logger;
 @Mod(LMMChat.MODID)
 public class LMMChat {
 
-    static ChatThread chatThread;
+    public  static ChatThread chatThread;
     static LMMChatController lmmChatController;
     // Define mod id in a common place for everything to reference
     public static final String MODID = "lmmchat";
@@ -45,12 +48,31 @@ public class LMMChat {
     // Creates a new BlockItem with the id "LMMChat:example_block", combining the namespace and path
     public static final RegistryObject<Item> EXAMPLE_BLOCK_ITEM = ITEMS.register("example_block", () -> new BlockItem(EXAMPLE_BLOCK.get(), new Item.Properties().tab(CreativeModeTab.TAB_BUILDING_BLOCKS)));
 
-    public static void addChatMessage(Entity caller,Entity callee, String callerMessage,int conversationCount){
+    public static void addChatMessage(LivingEntity caller, LivingEntity callee, boolean callerIsAssistant,
+                                      boolean calleeIsAssistant, String callerMessage, int conversationCount){
         // if caller and caller are same entity, do nothing
         if(caller.equals(callee)){
             return;
         }
-        ChatGenerationRequest request = new ChatGenerationRequest(caller,callee,callerMessage,caller.getLevel().getGameTime(),conversationCount);
+
+        // check callee is friendly to caller
+        boolean friendly = false;
+        if(callee instanceof TamableAnimal){
+            TamableAnimal animal = (TamableAnimal) callee;
+            if(animal.isTame()  && animal.isOwnedBy(caller)){
+                friendly = true;
+            }
+        }
+        ChatPreface preface;
+        if(!friendly){
+            preface=new ChatPreface(LMMChatConfig.getNeutralPreface());
+        }else{
+            preface=new ChatPreface(LMMChatConfig.getPreface());
+        }
+
+
+        ChatGenerationRequest request = new ChatGenerationRequest(caller,callee,callerIsAssistant,
+                calleeIsAssistant,callerMessage,caller.getLevel().getGameTime(),conversationCount,preface);
         Minecraft.getInstance().execute(() -> {
             chatThread.PushRequest(request);
         });
@@ -68,7 +90,7 @@ public class LMMChat {
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
-
+        AIOrderDefinitions.initialize();
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {

@@ -29,9 +29,9 @@ public class ChatThread {
     }
 
     public void routine() {
-        try {
-            while (true) {
 
+        while (true) {
+            try {
                 if (chatGenerationRequestQueue.size() > 0) {
                     ChatGenerationRequest chatData = chatGenerationRequestQueue.poll();
                     logger.info("chatData: " + chatData.getCallerMessage());
@@ -43,22 +43,34 @@ public class ChatThread {
                         history = new ChatHistory();
                         chatHistory.put(String.valueOf(chatData.getCaller().getId()), history);
                     }
+                    try {
+                        var ret = chatContoller.generateChatMessage(chatData, history);
+                        //send message to minecraft
+                        chatDataQueue.add(ret);
+                    } catch (TooLongConversationException e) {
+                        //half history
+                        history.chatDataList.subList(0, history.chatDataList.size() / 2).clear();
+                        //retry
+                        chatGenerationRequestQueue.add(chatData);
+                        continue;
+                    }
 
-                    var ret = chatContoller.generateChatMessage(chatData, history);
-                    //send message to minecraft
-                    chatDataQueue.add(ret);
+
                 }
                 Thread.sleep(1000);
-
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                break;
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+
         }
     }
-    public void PushRequest(ChatGenerationRequest chatGenerationRequest){
+    public void PushRequest (ChatGenerationRequest chatGenerationRequest){
         chatGenerationRequestQueue.add(chatGenerationRequest);
     }
-    public ChatData PopChatData(){
+    public ChatData PopChatData () {
         return chatDataQueue.poll();
     }
 }

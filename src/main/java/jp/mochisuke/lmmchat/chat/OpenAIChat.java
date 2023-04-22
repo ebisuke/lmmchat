@@ -1,6 +1,7 @@
 package jp.mochisuke.lmmchat.chat;
 
 
+import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
@@ -25,15 +26,24 @@ public class OpenAIChat implements IChatBase{
         for(ChatData chatData : chatHistory.getChatDataList()){
             var chatMessage = new ChatMessage();
             //caller
-            chatMessage.setRole((Objects.equals(String.valueOf(chatData.getCaller().getId()), callerId) ?
-                    ChatMessageRole.SYSTEM.value() : ChatMessageRole.USER.value()));
+            if(chatData.isCallerIsAssistant()){
+                chatMessage.setRole(ChatMessageRole.ASSISTANT.value());
+            }else {
+                chatMessage.setRole((Objects.equals(String.valueOf(chatData.getCaller().getId()), callerId) ?
+                        ChatMessageRole.SYSTEM.value() : ChatMessageRole.USER.value()));
+            }
             chatMessage.setContent(chatData.getCallerMessage());
 
 
             //callee
-            chatMessage.setRole(Objects.equals(String.valueOf( chatData.getCallee().getId()), callerId) ?
-                    ChatMessageRole.USER.value(): ChatMessageRole.SYSTEM.value());
+            if(chatData.isCalleeIsAssistant()){
+                chatMessage.setRole(ChatMessageRole.ASSISTANT.value());
+            }else {
+                chatMessage.setRole(Objects.equals(String.valueOf(chatData.getCallee().getId()), callerId) ?
+                        ChatMessageRole.USER.value() : ChatMessageRole.SYSTEM.value());
+            }
             chatMessage.setContent(chatData.getCalleeMessage());
+
 
             //add
             chatMessages.add(chatMessage);
@@ -45,12 +55,12 @@ public class OpenAIChat implements IChatBase{
     public ChatData generateChatMessage(ChatGenerationRequest req,ChatHistory chatHistory) throws InterruptedException {
         for(int retry=0;retry<10;retry++) {
             try {        // generate preface
-                ChatMessage preface = new ChatMessage();
-                preface.setRole(ChatMessageRole.ASSISTANT.value());
-                preface.setContent(LMMChatConfig.getPreface());
+                ChatMessage prefacechat = new ChatMessage();
+                prefacechat.setRole(ChatMessageRole.ASSISTANT.value());
+                prefacechat.setContent(req.GetPreface().getMessage());
 
                 var chatMessages = this.convertChatHistory(String.valueOf(req.getCaller().getId()), chatHistory);
-                chatMessages.insertElementAt(preface, 0);
+                chatMessages.insertElementAt(prefacechat, 0);
 
                 // prepare REST request
                 ChatCompletionRequest request = ChatCompletionRequest.builder()
@@ -68,7 +78,6 @@ public class OpenAIChat implements IChatBase{
 
                 var ret = service.createChatCompletion(request);
 
-
                 // add to chat history
 
                 OpenAIChatData chatData = new OpenAIChatData(
@@ -79,6 +88,8 @@ public class OpenAIChat implements IChatBase{
                         Minecraft.getInstance().player.getLevel().getGameTime(),
                         req.getCaller(),
                         req.getCallee(),
+                        req.isCallerIsAssistant(),
+                        req.isCalleeIsAssistant(),
                         req.getConversationCount() + 1,
                         (int) ret.getUsage().getTotalTokens(),
                         ret,
@@ -88,12 +99,18 @@ public class OpenAIChat implements IChatBase{
                 //save
                 chatHistory.Add(chatData);
                 return chatData;
-            } catch (RuntimeException e) {
+            }catch(OpenAiHttpException ex) {
+                if(ex.getMessage().contains("This model's maximum context length")){
+                    throw new TooLongConversationException();
+                }
+            }catch (RuntimeException e) {
                 if (e.getCause() instanceof SocketTimeoutException) {
                     System.out.println("SocketTimeoutException");
                     Thread.sleep(1000);
                     continue;
                 }
+
+
                 e.printStackTrace();
                 return null;
             }
