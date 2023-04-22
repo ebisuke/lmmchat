@@ -1,31 +1,40 @@
 package jp.mochisuke.lmmchat.order;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import net.minecraft.world.entity.Mob;
+
 import java.util.HashMap;
 import java.util.List;
 
 public class AIOrderDefinitions {
-    public static HashMap<String,Class<AIOrderBase>> orders = new HashMap<>();
+    //generator map
+    public static HashMap<String, AIOrderBase.Generator> orders = new HashMap<>();
 
-    public static void register(String name,Class<AIOrderBase> order){
+    public static void register(String name,AIOrderBase.Generator order){
         orders.put(name, order);
     }
 
-    public static AIOrderBase createOrder(String orderName,List<Object> args){
+    public static AIOrderBase createOrder(Mob mob, String orderName,VariablesContext context, List<Object> args){
         //get constructor
-        try {
-            Constructor<AIOrderBase> constructor = orders.get(orderName).getConstructor(List.class);
-            //generate
-            return constructor.newInstance(args);
-        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        var gen = orders.get(orderName).generate(mob,context,args);
+        //generate
+        return gen;
     }
 
     public static void initialize(){
 
 
+        //register orders
+        register("place", BlockPlaceOrder::new);
+        register("end", EndOrder::new);
+        register("move", MoveOrder::new);
+        register("findowner", OwnerIdOrder::new);
+        register("findentity", FindEntityOrder::new);
+        register("findblock", FindBlockOrder::new);
+        register("take", ItemTakeOrder::new);
+        register("give", ItemGiveOrder::new);
+        register("put", BlockItemPutOrder::new);
+        register("pick", BlockItemPickupOrder::new);
+        register("pos", PositionOrder::new);
 
 
     }

@@ -12,16 +12,49 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import org.slf4j.Logger;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 
 public abstract class AIOrderBase implements ChatGenerationCallback {
     public static final Logger logger= LogUtils.getLogger();
     protected final Mob entity;
-    public AIOrderBase(Mob entity, List<Object> args) {
+    protected final VariablesContext context;
+    protected List<Object> args;
+    public AIOrderBase(Mob entity,VariablesContext context, List<Object> args) {
         this.entity = entity;
+        this.context = context;
+        this.args = args;
     }
-
-    public abstract void execute();
+    protected abstract void startUp(Mob entity,VariablesContext context, List<Object> args);
+    protected int val(String o){
+        //name is number?
+        if (o.matches("(|-)[0-9]+")) {
+            //return number
+            return Integer.parseInt(o);
+        } else
+        if (context.variables.containsKey(o)) {
+            return (int) context.variables.get(o);
+        } else {
+            throw new RuntimeException("variable not found:"+o);
+        }
+    }
+    protected void val(String o,int value){
+        //name is number?
+        if (o.matches("(|-)[0-9]+")) {
+            //return number
+            throw new RuntimeException("variable name is number:"+o);
+    }
+        context.variables.put(o,value);
+    }
+    public interface Generator{
+        AIOrderBase generate(Mob entity,VariablesContext context, List<Object> args);
+    }
+    public void execute(){
+        startUp(entity,context,args);
+        executeImpl();
+    }
+    protected abstract void executeImpl();
 
     public void onSuccess(){
         //nothing to do
@@ -57,5 +90,24 @@ public abstract class AIOrderBase implements ChatGenerationCallback {
         sendChatFromAssitant(response.getCalleeMessage(),request.getCaller());
 
 
+    }
+
+    public void activateGoal(Class type, Object ... args)
+    {
+        this.entity.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal().getClass()==type).findFirst().ifPresent(g->{
+            Method m = null;
+            try {
+                m = type.getMethod("activate");
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+            try {
+                m.invoke(g.getGoal(),args);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }

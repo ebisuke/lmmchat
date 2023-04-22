@@ -10,18 +10,23 @@ public class FindEntityOrder extends AIOrderBase{
 
     String entityname;
 
-    public FindEntityOrder(Mob entity, List<Object> args) {
+    public FindEntityOrder(Mob entity,VariablesContext context, List<Object> args) {
 
-        super(entity, args);
+        super(entity,context, args);
 
-        entityname= (String) args.get(0);
 
 
 
     }
 
     @Override
-    public void execute() {
+    protected void startUp(Mob entity, VariablesContext context, List<Object> args) {
+        entityname= (String) args.get(0);
+
+    }
+
+    @Override
+    public void executeImpl() {
         //find nearby entity
         var nearentities=entity.getLevel().getNearbyEntities(LivingEntity.class, TargetingConditions.forNonCombat(), entity,
                 entity.getBoundingBox().inflate(30));
@@ -32,7 +37,7 @@ public class FindEntityOrder extends AIOrderBase{
             return;
         }
         //pick first
-        var target=nearentities.stream().filter(e->e.getName().getString().equals(entityname)).findFirst().orElse(null);
+        var target=nearentities.stream().filter(e->e.getName().getString().contains(entityname)).findFirst().orElse(null);
 
         if(target==null){
             //no entity found
@@ -40,10 +45,19 @@ public class FindEntityOrder extends AIOrderBase{
             return;
         }
         //get target id
-        var targetid=target.getEncodeId();
+        var targetid=target.getId();
 
         // reply
         this.notifyAI("Target id is "+targetid);
+
+        //store
+        val("id",targetid);
+        //pos
+        val("x",target.getBlockX());
+        val("y",target.getBlockY());
+        val("z",target.getBlockZ());
+
+
 
     }
 

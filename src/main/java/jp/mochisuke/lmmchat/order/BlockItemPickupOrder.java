@@ -8,7 +8,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class BlockItemPickOrder extends AIOrderBase{
+public class BlockItemPickupOrder extends AIOrderBase{
 
 
     //x,y,z,itemname,minslotindex,maxslotindex
@@ -18,15 +18,26 @@ public class BlockItemPickOrder extends AIOrderBase{
     private String itemname;
     private int minslotindex;
     private int maxslotindex;
-    public BlockItemPickOrder(Mob entity, List<Object> args, int x, int y, int z, String itemname, int minslotindex, int maxslotindex) {
-        super(entity, args);
+    public BlockItemPickupOrder(Mob entity,VariablesContext context, List<Object> args) {
+        super(entity, context, args);
 
-        this.x=x;
-        this.y=y;
-        this.z=z;
-        this.itemname=itemname;
-        this.minslotindex=minslotindex;
-        this.maxslotindex=maxslotindex;
+    }
+
+    @Override
+    protected void startUp(Mob entity, VariablesContext context, List<Object> args) {
+        String x,y,z,minslotindex,maxslotindex;
+        x= (String) args.get(0);
+        y= (String) args.get(1);
+        z= (String) args.get(2);
+        this.x=val(x);
+        this.y=val(y);
+        this.z=val(z);
+        minslotindex= (String) args.get(4);
+        maxslotindex= (String) args.get(5);
+        this.minslotindex=val(minslotindex);
+        this.maxslotindex=val(maxslotindex);
+
+        this.itemname=(String)args.get(3);
     }
 
     @Override
@@ -40,12 +51,12 @@ public class BlockItemPickOrder extends AIOrderBase{
     }
 
     @Override
-    public void execute() {
+    public void executeImpl() {
 
         //finditem from db
         AtomicReference<ItemStack> stack=null;
 
-        ForgeRegistries.ITEMS.getValues().stream().filter(i->i.getDescriptionId().equals(itemname)).findFirst().ifPresent(i->{
+        ForgeRegistries.ITEMS.getValues().stream().filter(i->i.getDescriptionId().contains(itemname)).findFirst().ifPresent(i->{
             stack.set(new ItemStack(i));
         });
 

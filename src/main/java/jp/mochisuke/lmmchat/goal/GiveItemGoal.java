@@ -16,14 +16,17 @@ public class GiveItemGoal <T extends PathfinderMob & HasInventory>  extends Call
 
     private ItemStack giveItemStack;
 
+    private int itemCount;
+
     public GiveItemGoal(T entity) {
         this.entity = entity;
     }
 
-    public void activate(LivingEntity targetEntity, ItemStack giveItemStack){
-        this.active=true;
+    public void activate(LivingEntity targetEntity, ItemStack giveItemStack,int itemCount){
+        super.activate();
         this.targetEntity=targetEntity;
         this.giveItemStack=giveItemStack;
+        this.itemCount=itemCount;
     }
 
     @Override
@@ -88,7 +91,7 @@ public class GiveItemGoal <T extends PathfinderMob & HasInventory>  extends Call
             }
 
 
-
+            int remain=itemCount;
             //find empty slot or stack item
             for(int slot=0;slot<container.getContainerSize();slot++ ){
                 ItemStack itemStack=container.getItem(slot);
@@ -99,7 +102,7 @@ public class GiveItemGoal <T extends PathfinderMob & HasInventory>  extends Call
                     return;
                 }else if(itemStack.sameItem(giveItemStack)){
                     //stack item
-                    int stackSize=itemStack.getCount()+giveItemStack.getCount();
+                    int stackSize=itemStack.getCount()+remain;
                     if(stackSize<=itemStack.getMaxStackSize()){
                         //stackable
                         itemStack.setCount(stackSize);
@@ -108,7 +111,7 @@ public class GiveItemGoal <T extends PathfinderMob & HasInventory>  extends Call
                         return;
                     }else{
                         //not stackable
-                        int remain=stackSize-itemStack.getMaxStackSize();
+                        remain-=itemStack.getMaxStackSize();
                         itemStack.setCount(itemStack.getMaxStackSize());
                         container.setItem(slot,itemStack);
                         giveItemStack.setCount(remain);

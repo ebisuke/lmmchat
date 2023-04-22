@@ -14,15 +14,16 @@ public class TakeItemGoal  <T extends PathfinderMob & HasInventory>  extends Cal
     private LivingEntity targetEntity;
 
     private ItemStack giveItemStack;
-
+    private int itemCount;
     public TakeItemGoal(T entity) {
         this.entity = entity;
     }
 
-    public void activate(LivingEntity targetEntity, ItemStack giveItemStack){
-        this.active=true;
+    public void activate(LivingEntity targetEntity, ItemStack giveItemStack,int itemCount){
+        super.activate();
         this.targetEntity=targetEntity;
         this.giveItemStack=giveItemStack;
+        this.itemCount=itemCount;
     }
 
     @Override
@@ -82,10 +83,10 @@ public class TakeItemGoal  <T extends PathfinderMob & HasInventory>  extends Cal
             }
             //found?
             if(container==null){
-                active=false;
+                fail("target is not have inventory");
                 return;
             }
-
+            int remain=itemCount;
             //get inventory
             for(int i=0;i<container.getContainerSize();i++){
                 ItemStack itemStack=container.getItem(i);
@@ -98,31 +99,56 @@ public class TakeItemGoal  <T extends PathfinderMob & HasInventory>  extends Cal
                     //give item
                     for(int idx=0;idx<entity.getInventory().getContainerSize();idx++){
                         ItemStack itemStack1=entity.getInventory().getItem(idx);
+
+                        int storablecount;
                         //is itemStack1 empty?
-                        if(itemStack1.isEmpty()){
-                            //put itemStack to entity inventory
-                            entity.getInventory().setItem(idx,itemStack);
-                            //remove item from target
-                            container.removeItem(i,1);
-                            //stop
-                            active=false;
-                            return;
-                        }else if(itemStack1.sameItem(itemStack)){
-                            //put itemStack to entity inventory
-                            entity.getInventory().setItem(idx,itemStack);
-                            //remove item from target
-                            container.removeItem(i,1);
-                            //stop
-                            active=false;
-                            return;
+                        if(itemStack1.isEmpty()) {
+                            storablecount = itemStack1.getMaxStackSize();
+                        }else {
+                            storablecount = itemStack1.getMaxStackSize() - itemStack1.getCount();
                         }
+
+                        //is itemStack1 same as giveItemStack?
+                        if(itemStack1.sameItem(giveItemStack)){
+                            //is itemStack1 full?
+                            if(itemStack1.getCount()>=itemStack1.getMaxStackSize()){
+                                continue;
+                            }
+                            //is itemStack1 can store more?
+                            if(storablecount>remain){
+                                storablecount=remain;
+                            }
+                            //give item
+                            itemStack1.grow(storablecount);
+                            itemStack.shrink(storablecount);
+                            remain-=storablecount;
+                            //is remain 0?
+                            if(remain==0){
+                                success();
+                                return;
+                            }
+                        }else{
+                            //is itemStack1 empty?
+                            if(itemStack1.isEmpty()){
+                                //give item
+                                itemStack1=itemStack.copy();
+                                itemStack1.setCount(storablecount);
+                                itemStack.shrink(storablecount);
+                                remain-=storablecount;
+                                //is remain 0?
+                                if(remain==0){
+                                    success();
+                                    return;
+                                }
+                            }
+                        }
+
                     }
 
                 }
             }
 
-            // inventory is full
-            active=false;
+            fail("inventory is full");
 
 
 

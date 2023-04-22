@@ -10,8 +10,8 @@ public class ChatGenerationRequest implements Cloneable{
     private int conversationCount;
     private ChatPreface preface;
 
-    private boolean callerIsAssistant = false;
-    private boolean calleeIsAssistant = false;
+    private boolean callerIsSystem = false;
+    private boolean calleeIsSystem = false;
 
     //callback for chat generation
 
@@ -20,16 +20,16 @@ public class ChatGenerationRequest implements Cloneable{
 
 
 
-    public ChatGenerationRequest(LivingEntity caller,LivingEntity callee,boolean callerIsAssistant,boolean calleeIsAssistant, String callerMessage,
-                                 long timestamp,int conversationCount ,ChatPreface preface) {
+    public ChatGenerationRequest(LivingEntity caller, LivingEntity callee, boolean callerIsSystem, boolean calleeIsSystem, String callerMessage,
+                                 long timestamp, int conversationCount , ChatPreface preface) {
         this.callerMessage = callerMessage;
         this.caller = caller;
         this.callee = callee;
         this.timestamp = timestamp;
         this.conversationCount = conversationCount;
         this.preface = preface;
-        this.callerIsAssistant = callerIsAssistant;
-        this.calleeIsAssistant = calleeIsAssistant;
+        this.callerIsSystem = callerIsSystem;
+        this.calleeIsSystem = calleeIsSystem;
 
     }
 
@@ -56,24 +56,24 @@ public class ChatGenerationRequest implements Cloneable{
     public long getTimestamp() {
         return timestamp;
     }
-    public ChatPreface GetPreface(){
+    public ChatPreface getPreface(){
         return preface;
     }
 
-    public boolean isCallerIsAssistant() {
-        return callerIsAssistant;
+    public boolean isCallerIsSystem() {
+        return callerIsSystem;
     }
 
-    public void setCallerIsAssistant(boolean callerIsAssistant) {
-        this.callerIsAssistant = callerIsAssistant;
+    public void setCallerIsSystem(boolean callerIsSystem) {
+        this.callerIsSystem = callerIsSystem;
     }
 
-    public boolean isCalleeIsAssistant() {
-        return calleeIsAssistant;
+    public boolean isCalleeIsSystem() {
+        return calleeIsSystem;
     }
 
-    public void setCalleeIsAssistant(boolean calleeIsAssistant) {
-        this.calleeIsAssistant = calleeIsAssistant;
+    public void setCalleeIsSystem(boolean calleeIsSystem) {
+        this.calleeIsSystem = calleeIsSystem;
     }
 
 

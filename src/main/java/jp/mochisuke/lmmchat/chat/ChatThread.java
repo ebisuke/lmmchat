@@ -37,11 +37,11 @@ public class ChatThread {
                     logger.info("chatData: " + chatData.getCallerMessage());
                     //pickup history if available
                     ChatHistory history;
-                    if (chatHistory.containsKey(String.valueOf(chatData.getCaller().getId()))) {
-                        history = chatHistory.get(String.valueOf(chatData.getCaller().getId()));
+                    if (chatHistory.containsKey(String.valueOf(chatData.getCallee().getId()))) {
+                        history = chatHistory.get(String.valueOf(chatData.getCallee().getId()));
                     } else {
                         history = new ChatHistory();
-                        chatHistory.put(String.valueOf(chatData.getCaller().getId()), history);
+                        chatHistory.put(String.valueOf(chatData.getCallee().getId()), history);
                     }
                     try {
                         var ret = chatContoller.generateChatMessage(chatData, history);
@@ -52,6 +52,7 @@ public class ChatThread {
                         history.chatDataList.subList(0, history.chatDataList.size() / 2).clear();
                         //retry
                         chatGenerationRequestQueue.add(chatData);
+                        Thread.sleep(1000);
                         continue;
                     }
 

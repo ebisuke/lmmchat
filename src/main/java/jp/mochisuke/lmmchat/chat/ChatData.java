@@ -12,16 +12,17 @@ public class ChatData implements Cloneable{
     private LivingEntity caller;
     private LivingEntity callee;
 
-    private boolean callerIsAssistant = false;
-    private boolean calleeIsAssistant = false;
+    private boolean callerIsSystem = false;
+    private boolean calleeIsSystem = false;
 
     private int conversationCount;
 
-    public ChatData(String callerMessage, String calleeMessage, long timestamp, LivingEntity caller, LivingEntity callee,boolean callerIsAssistant,boolean calleeIsAssistant,int conversationCount) {
+
+    public ChatData(String callerMessage, String calleeMessage, long timestamp, LivingEntity caller, LivingEntity callee,boolean callerIsSystem,boolean calleeIsSystem,int conversationCount) {
         this.callerMessage = callerMessage;
         this.calleeMessage = calleeMessage;
-        this.callerIsAssistant = callerIsAssistant;
-        this.calleeIsAssistant = calleeIsAssistant;
+        this.callerIsSystem = callerIsSystem;
+        this.calleeIsSystem = calleeIsSystem;
         //gerenate id
         this.id  = String.valueOf(caller.getId()) + ":"+String.valueOf(callee.getId()) +":"+ timestamp;
         this.timestamp = timestamp;
@@ -60,12 +61,12 @@ public class ChatData implements Cloneable{
         return conversationCount;
     }
 
-    public boolean isCallerIsAssistant() {
-        return callerIsAssistant;
+    public boolean isCallerIsSystem() {
+        return callerIsSystem;
     }
 
-    public boolean isCalleeIsAssistant() {
-        return calleeIsAssistant;
+    public boolean isCalleeIsSystem() {
+        return calleeIsSystem;
     }
 
     @Override

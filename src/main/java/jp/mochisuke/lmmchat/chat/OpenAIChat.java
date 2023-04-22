@@ -26,21 +26,21 @@ public class OpenAIChat implements IChatBase{
         for(ChatData chatData : chatHistory.getChatDataList()){
             var chatMessage = new ChatMessage();
             //caller
-            if(chatData.isCallerIsAssistant()){
-                chatMessage.setRole(ChatMessageRole.ASSISTANT.value());
+            if(chatData.isCallerIsSystem()){
+                chatMessage.setRole(ChatMessageRole.SYSTEM.value());
             }else {
                 chatMessage.setRole((Objects.equals(String.valueOf(chatData.getCaller().getId()), callerId) ?
-                        ChatMessageRole.SYSTEM.value() : ChatMessageRole.USER.value()));
+                        ChatMessageRole.ASSISTANT.value() : ChatMessageRole.USER.value()));
             }
             chatMessage.setContent(chatData.getCallerMessage());
 
 
             //callee
-            if(chatData.isCalleeIsAssistant()){
-                chatMessage.setRole(ChatMessageRole.ASSISTANT.value());
+            if(chatData.isCalleeIsSystem()){
+                chatMessage.setRole(ChatMessageRole.SYSTEM.value());
             }else {
                 chatMessage.setRole(Objects.equals(String.valueOf(chatData.getCallee().getId()), callerId) ?
-                        ChatMessageRole.USER.value() : ChatMessageRole.SYSTEM.value());
+                        ChatMessageRole.USER.value() : ChatMessageRole.ASSISTANT.value());
             }
             chatMessage.setContent(chatData.getCalleeMessage());
 
@@ -55,13 +55,19 @@ public class OpenAIChat implements IChatBase{
     public ChatData generateChatMessage(ChatGenerationRequest req,ChatHistory chatHistory) throws InterruptedException {
         for(int retry=0;retry<10;retry++) {
             try {        // generate preface
-                ChatMessage prefacechat = new ChatMessage();
-                prefacechat.setRole(ChatMessageRole.ASSISTANT.value());
-                prefacechat.setContent(req.GetPreface().getMessage());
-
                 var chatMessages = this.convertChatHistory(String.valueOf(req.getCaller().getId()), chatHistory);
+                //generate preface
+
+                ChatMessage prefacechat = new ChatMessage();
+                prefacechat.setRole(ChatMessageRole.SYSTEM.value());
+                prefacechat.setContent(req.getPreface().getMessage() );
                 chatMessages.insertElementAt(prefacechat, 0);
 
+                // add req
+                ChatMessage reqchat = new ChatMessage();
+                reqchat.setRole(ChatMessageRole.USER.value());
+                reqchat.setContent(req.getCallerMessage());
+                chatMessages.add(reqchat);
                 // prepare REST request
                 ChatCompletionRequest request = ChatCompletionRequest.builder()
                         .model(LMMChatConfig.getModelName())
@@ -88,8 +94,8 @@ public class OpenAIChat implements IChatBase{
                         Minecraft.getInstance().player.getLevel().getGameTime(),
                         req.getCaller(),
                         req.getCallee(),
-                        req.isCallerIsAssistant(),
-                        req.isCalleeIsAssistant(),
+                        req.isCallerIsSystem(),
+                        req.isCalleeIsSystem(),
                         req.getConversationCount() + 1,
                         (int) ret.getUsage().getTotalTokens(),
                         ret,

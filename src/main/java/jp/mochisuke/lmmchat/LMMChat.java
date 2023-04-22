@@ -28,6 +28,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
+import javax.annotation.Nullable;
+
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(LMMChat.MODID)
 public class LMMChat {
@@ -48,7 +50,7 @@ public class LMMChat {
     // Creates a new BlockItem with the id "LMMChat:example_block", combining the namespace and path
     public static final RegistryObject<Item> EXAMPLE_BLOCK_ITEM = ITEMS.register("example_block", () -> new BlockItem(EXAMPLE_BLOCK.get(), new Item.Properties().tab(CreativeModeTab.TAB_BUILDING_BLOCKS)));
 
-    public static void addChatMessage(LivingEntity caller, LivingEntity callee, boolean callerIsAssistant,
+    public static void addChatMessage(@Nullable LivingEntity caller,@Nullable LivingEntity callee, boolean callerIsAssistant,
                                       boolean calleeIsAssistant, String callerMessage, int conversationCount){
         // if caller and caller are same entity, do nothing
         if(caller.equals(callee)){

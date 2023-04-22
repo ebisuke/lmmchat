@@ -10,18 +10,23 @@ public class FindBlockOrder extends AIOrderBase{
 
     String blockname;
 
-    public FindBlockOrder(Mob entity, List<Object> args) {
+    public FindBlockOrder(Mob entity,VariablesContext context, List<Object> args) {
 
-        super(entity, args);
-
-        blockname= (String) args.get(0);
+        super(entity,context, args);
 
 
 
     }
 
     @Override
-    public void execute() {
+    protected void startUp(Mob entity, VariablesContext context, List<Object> args) {
+        blockname= (String) args.get(0);
+
+
+    }
+
+    @Override
+    public void executeImpl() {
         //find nearby block
         var pos=entity.blockPosition();
         Block foundblock=null;
@@ -30,7 +35,7 @@ public class FindBlockOrder extends AIOrderBase{
             for(int y=pos.getY()-size/2;y<pos.getY()+size/2;y++){
                 for(int z=pos.getZ()-size/2;z<pos.getZ()+size/2;z++){
                     var block=entity.getLevel().getBlockState(new BlockPos(x,y,z));
-                    if(block.getBlock().getName().getString().equals(blockname)){
+                    if(block.getBlock().getName().getString().contains(blockname)){
                         //found
                         foundblock=block.getBlock();
                     }
@@ -42,6 +47,10 @@ public class FindBlockOrder extends AIOrderBase{
             this.notifyAI("No block found");
             return;
         }
+        //store
+        val("x",pos.getX());
+        val("y",pos.getY());
+        val("z",pos.getZ());
 
         // reply
         this.notifyAI("Target block position location is "+pos.getX()+","+pos.getY()+","+pos.getZ());

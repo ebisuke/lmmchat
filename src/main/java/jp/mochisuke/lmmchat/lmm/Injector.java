@@ -20,7 +20,9 @@ public class Injector {
             entity.goalSelector.addGoal(priority,new jp.mochisuke.lmmchat.goal.GiveItemGoal<LittleMaidEntity>(entity));
 
             entity.goalSelector.addGoal(priority,new jp.mochisuke.lmmchat.goal.TakeItemGoal<LittleMaidEntity>(entity));
-
+            entity.goalSelector.addGoal(priority,new jp.mochisuke.lmmchat.goal.RandomTalkGoal<LittleMaidEntity>(entity));
+            entity.goalSelector.addGoal(1,new jp.mochisuke.lmmchat.goal.StatusNotificationGoal<LittleMaidEntity>(entity));
+            entity.goalSelector.addGoal(priority,new jp.mochisuke.lmmchat.goal.BlockPlaceGoal<LittleMaidEntity>(entity));
 
         }
     }

@@ -17,15 +17,25 @@ public class BlockItemPutOrder extends AIOrderBase{
     private String itemname;
     private int minslotindex;
     private int maxslotindex;
-    public BlockItemPutOrder(Mob entity, List<Object> args, int x, int y, int z, String itemname, int minslotindex, int maxslotindex) {
-        super(entity, args);
+    public BlockItemPutOrder(Mob entity,VariablesContext context, List<Object> args) {
+        super(entity,context, args);
 
-        this.x=x;
-        this.y=y;
-        this.z=z;
-        this.itemname=itemname;
-        this.minslotindex=minslotindex;
-        this.maxslotindex=maxslotindex;
+    }
+
+    @Override
+    protected void startUp(Mob entity, VariablesContext context, List<Object> args) {
+        String x,y,z,minslotindex,maxslotindex;
+        x= (String) args.get(0);
+        y= (String) args.get(1);
+        z= (String) args.get(2);
+        this.x=val(x);
+        this.y=val(y);
+        this.z=val(z);
+        minslotindex= (String) args.get(4);
+        maxslotindex= (String) args.get(5);
+        this.itemname=(String)args.get(3);
+        this.minslotindex=val(minslotindex);
+        this.maxslotindex=val(maxslotindex);
     }
 
     @Override
@@ -39,7 +49,7 @@ public class BlockItemPutOrder extends AIOrderBase{
     }
 
     @Override
-    public void execute() {
+    public void executeImpl() {
         //activate blockitemputgoal
 
         //convert itemname to item
@@ -47,7 +57,7 @@ public class BlockItemPutOrder extends AIOrderBase{
         ItemStack stack=null;
         for(int i=0;i<container.getContainerSize();i++){
             var item=container.getItem(i);
-            if(item.getHoverName().getString().equals(itemname)){
+            if(item.getHoverName().getString().contains(itemname)){
                 stack=item;
                 break;
             }

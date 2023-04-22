@@ -8,13 +8,18 @@ import java.util.List;
 
 public class EndOrder extends AIOrderBase{
 
-    public EndOrder(Mob entity, List<Object> args) {
-        super(entity, args);
+    public EndOrder(Mob entity,VariablesContext context, List<Object> args) {
+        super(entity,context, args);
     }
 
     @Override
-    public void execute() {
-        //do nothing
+    protected void startUp(Mob entity, VariablesContext context, List<Object> args) {
+
+    }
+
+    @Override
+    public void executeImpl() {
+        context.clear();
     }
 
     @Override

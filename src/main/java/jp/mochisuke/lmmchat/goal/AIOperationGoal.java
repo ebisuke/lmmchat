@@ -31,6 +31,11 @@ public class AIOperationGoal  <T extends Mob>  extends Goal implements Callbacke
     }
 
     @Override
+    public boolean canContinueToUse() {
+        return canUse();
+    }
+
+    @Override
     public void onSuccess() {
         var cur=currentOrder;
         currentOrder=null;
