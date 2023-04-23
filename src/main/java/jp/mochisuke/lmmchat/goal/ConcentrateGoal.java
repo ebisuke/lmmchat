@@ -80,7 +80,7 @@ public class ConcentrateGoal<T extends TamableAnimal> extends AIGoalBase{
 
                 int sugarcount=0;
                 for(int i=0;i<inventory.getContainerSize();i++){
-                    if(inventory.getItem(i).getDescriptionId().equals("item::minecraft:sugar")){
+                    if(inventory.getItem(i).getDescriptionId().contains("sugar")){
                         sugarcount+=inventory.getItem(i).getCount();
                     }
                 }

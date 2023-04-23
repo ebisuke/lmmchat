@@ -90,7 +90,7 @@ public class BlockItemPutGoal <T extends PathfinderMob & HasInventory> extends A
     }
     @Override
     public boolean requiresUpdateEveryTick() {
-        return super.requiresUpdateEveryTick();
+        return true;
     }
     @Override
     public boolean canUse() {

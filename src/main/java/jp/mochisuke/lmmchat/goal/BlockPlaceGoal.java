@@ -34,6 +34,10 @@ public class BlockPlaceGoal<T extends Mob> extends AIGoalBase {
         pathFindingRetry=0;
         super.activate();
     }
+    @Override
+    public boolean requiresUpdateEveryTick() {
+        return true;
+    }
 
     @Override
     public EnumSet<Flag> getFlags() {

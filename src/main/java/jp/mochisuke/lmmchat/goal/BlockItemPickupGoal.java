@@ -57,6 +57,11 @@ public class BlockItemPickupGoal<T extends PathfinderMob & HasInventory> extends
     }
 
     @Override
+    public boolean requiresUpdateEveryTick() {
+        return true;
+    }
+
+    @Override
     public boolean isInterruptable() {
         return true;
     }

@@ -50,7 +50,7 @@ public class BlockItemPickupOrder extends AIOrderBase{
 
     @Override
     public void onSuccess() {
-        notifyAI("Item picked ");
+        notifyAI("Item picked "+itemname);
     }
 
     @Override

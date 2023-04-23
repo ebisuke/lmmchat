@@ -58,7 +58,7 @@ public class TakeItemGoal  <T extends PathfinderMob & HasInventory>  extends AIG
 
     @Override
     public boolean requiresUpdateEveryTick() {
-        return super.requiresUpdateEveryTick();
+        return true;
     }
 
     @Override

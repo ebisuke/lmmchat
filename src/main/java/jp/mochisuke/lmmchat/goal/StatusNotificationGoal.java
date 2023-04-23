@@ -33,8 +33,8 @@ public class StatusNotificationGoal<T extends TamableAnimal> extends Goal {
 
     @Override
     public void tick() {
-        //per 1200 ticks
-        if(entity.tickCount%1200==1) {
+        //per 3600 ticks
+        if(entity.tickCount%3600==1) {
             if (entity.isTame()) {
                 float hp = entity.getHealth();
                 float maxHp = entity.getMaxHealth();
@@ -66,7 +66,7 @@ public class StatusNotificationGoal<T extends TamableAnimal> extends Goal {
 
                 int sugarcount=0;
                 for(int i=0;i<inventory.getContainerSize();i++){
-                    if(inventory.getItem(i).getDescriptionId().equals("item::minecraft:sugar")){
+                    if(inventory.getItem(i).getDescriptionId().contains("sugar")){
                         sugarcount+=inventory.getItem(i).getCount();
                     }
                 }
