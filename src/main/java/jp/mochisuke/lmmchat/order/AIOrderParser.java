@@ -9,6 +9,13 @@ import java.util.Vector;
 
 public class AIOrderParser {
     static final Logger logger = LogUtils.getLogger();
+
+    public static String parsedRemnant(String orders){
+        //remove @ and ! lines
+        orders = orders.replaceAll("(?m)^@.*\n?", "");
+        orders = orders.replaceAll("(?m)^!.*\n?", "");
+        return orders;
+    }
     public static List<AIOrderBase> parse(LivingEntity sender, VariablesContext context, String orders){
         //format
         //order_name arg1,arg2,arg3...
@@ -25,6 +32,24 @@ public class AIOrderParser {
             }
             //remove !
             orderLine = orderLine.substring(1);
+            //remove {}
+            orderLine = orderLine.replaceAll("[{|}]", "");
+            //remove ""
+            orderLine = orderLine.replaceAll("\"", "");
+            //remove ''
+            orderLine = orderLine.replaceAll("'", "");
+            //remove ~
+            orderLine = orderLine.replaceAll("~", "");
+            //remove @
+            orderLine = orderLine.replaceAll("@", "");
+            //remove $
+            orderLine = orderLine.replaceAll("\\$", "");
+            //remove #
+            orderLine = orderLine.replaceAll("#", "");
+            //remove %
+
+            orderLine = orderLine.replaceAll("%", "");
+
             //split by space
             String[] orderNameAndArgs = orderLine.split(" ");
 
@@ -44,9 +69,9 @@ public class AIOrderParser {
         }
         logger.info("parsed order:"+parsed.size());
         //set intermediate flag
-        for(int i=0;i<parsed.size()-1;i++){
-            parsed.get(i).setIntermediate(true);
-        }
+//        for(int i=0;i<parsed.size()-1;i++){
+//            parsed.get(i).setIntermediate(true);
+//        }
         return parsed;
 
 

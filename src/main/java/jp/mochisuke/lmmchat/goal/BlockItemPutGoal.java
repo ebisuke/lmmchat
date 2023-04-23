@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 
 import java.util.EnumSet;
 
-public class BlockItemPutGoal <T extends PathfinderMob & HasInventory> extends AIUnitGoalBase {
+public class BlockItemPutGoal <T extends PathfinderMob & HasInventory> extends AIGoalBase {
 
     static final Logger logger= LogUtils.getLogger();
     protected final T entity;
@@ -73,7 +73,6 @@ public class BlockItemPutGoal <T extends PathfinderMob & HasInventory> extends A
     @Override
     public void stop() {
         this.entity.getNavigation().stop();
-        fail("interrupted");
     }
     @Override
     public boolean requiresUpdateEveryTick() {
@@ -95,14 +94,17 @@ public class BlockItemPutGoal <T extends PathfinderMob & HasInventory> extends A
         //walk per 60 ticks
         if (this.entity.tickCount % 60 == 1) {
             // can  reach to block?
-            this.entity.getNavigation().moveTo(this.blockEntity.getBlockPos().getX(),
-                    this.blockEntity.getBlockPos().getY(), this.blockEntity.getBlockPos().getZ(),0.5);
-            if(!this.entity.getNavigation().isDone()) {
+            if(!this.entity.getNavigation().moveTo(this.blockEntity.getBlockPos().getX(),
+                    this.blockEntity.getBlockPos().getY(), this.blockEntity.getBlockPos().getZ(),1)){
+                //can not reach
                 pathFindingRetry++;
                 if(pathFindingRetry>10) {
-                    fail("can't reach to block");
+                    fail("can not reach");
                     return;
                 }
+            }else{
+                pathFindingRetry=0;
+
             }
         }
 
@@ -117,6 +119,9 @@ public class BlockItemPutGoal <T extends PathfinderMob & HasInventory> extends A
                 mn = 0;
                 mx = blockEntity.getContainerSize()-1;
             }
+            //fit
+            mn=Math.max(mn,0);
+            mx=Math.min(mx,blockEntity.getContainerSize()-1);
 
             for (int i = mn; i <= mx; i++) {
                 var item = blockEntity.getItem(i);
@@ -136,7 +141,7 @@ public class BlockItemPutGoal <T extends PathfinderMob & HasInventory> extends A
 
                         if (putItemStack.isEmpty() || putItemStack.getCount() <= 0) {
                             success();
-                            break;
+                            return;
                         }
                     }
                 } else if (item.isEmpty()) {
@@ -144,14 +149,14 @@ public class BlockItemPutGoal <T extends PathfinderMob & HasInventory> extends A
                     var putItem = putItemStack.copy();
                     putItem.setCount(
                             //store up to minecraft limit
-                            Math.min(putItemStack.getMaxStackSize() , putItemStack.getCount())
+                            putItemStack.getCount()
                     );
                     blockEntity.setItem(i, putItem);
-                    putItemStack.shrink(putItemStack.getCount() - putItem.getCount());
+                    putItemStack.shrink(putItemStack.getCount() );
 
                     if (putItemStack.isEmpty() || putItemStack.getCount() <= 0) {
                         success();
-                        break;
+                        return;
                     }
 
                 }

@@ -4,7 +4,7 @@ import net.minecraft.world.entity.Mob;
 
 import java.util.EnumSet;
 
-public class MoveGoal<T extends Mob> extends AIUnitGoalBase {
+public class MoveGoal<T extends Mob> extends AIGoalBase {
     protected final T entity;
     protected double x;
     protected double y;
@@ -17,7 +17,6 @@ public class MoveGoal<T extends Mob> extends AIUnitGoalBase {
     public void stop() {
         super.stop();
         entity.getNavigation().stop();
-        fail("interrupted");
     }
     @Override
     public EnumSet<Flag> getFlags() {

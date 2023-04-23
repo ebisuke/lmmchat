@@ -65,26 +65,32 @@ public class LMMChatController {
                 forceOwner=true;
             }
             // ---------- SHOW CHAT ---------
-            if(!chatData.isCalleeIsSystem()) {
+            var calleeMessageChat=AIOrderParser.parsedRemnant(calleeMessage);
+            if(!calleeMessageChat.strip().isEmpty()) {
 
-                //logger.info("TALK:" + caller.getName().getString() + ":" + chatData.getCallerMessage() + ":" + callee.getName().getString() + ":" + chatData.getCalleeMessage());
-                if(forceOwner){
-                    logger.info("TALK:force owner");
-                    var tamable=(Tameable)callee;
-                    var owner=tamable.getTameOwner();
-                    //owner.get().getser(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
-                    owner.get().sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()));
 
-                }else {
+                if (!chatData.isCalleeIsSystem()) {
 
-                    //say chat to nearest players
-                    callee.getCommandSenderWorld().getNearbyPlayers(TargetingConditions.forNonCombat(), (LivingEntity) callee,/*AABB*/ callee.getBoundingBox().inflate(10)
-                    ).forEach(player -> {
-                        //player.displayClientMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
-                        player.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()));
-                    });
+                    //logger.info("TALK:" + caller.getName().getString() + ":" + chatData.getCallerMessage() + ":" + callee.getName().getString() + ":" + chatData.getCalleeMessage());
+                    if (forceOwner) {
+                        logger.info("TALK:force owner");
+                        var tamable = (Tameable) callee;
+                        var owner = tamable.getTameOwner();
+                        //owner.get().getser(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
+                        owner.get().sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + calleeMessageChat));
+
+                    } else {
+
+                        //say chat to nearest players
+                        String finalCalleeMessage = calleeMessageChat;
+                        callee.getCommandSenderWorld().getNearbyPlayers(TargetingConditions.forNonCombat(), (LivingEntity) callee,/*AABB*/ callee.getBoundingBox().inflate(10)
+                        ).forEach(player -> {
+                            //player.displayClientMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
+                            player.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + finalCalleeMessage));
+                        });
+                    }
+
                 }
-
             }
             //------- ORDER -------
             List<AIOrderBase> orders;
@@ -108,6 +114,7 @@ public class LMMChatController {
                 }
 
                 orders = AIOrderParser.parse((LivingEntity) callee,context, calleeMessage);
+
             }catch (Exception e){
                 logger.error("parse error",e);
                 //notify
@@ -120,7 +127,8 @@ public class LMMChatController {
                 Mob calleemob=(Mob)callee;
                 var ai=calleemob.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof AIOperationGoal).findFirst();
                 var aiop=(AIOperationGoal)ai.get().getGoal();
-
+                //forget previous order
+                aiop.forget();
                 //check running thread
                 if(Minecraft.getInstance().isSameThread()) {
                     aiop.activate(orders);

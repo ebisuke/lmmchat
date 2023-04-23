@@ -1,9 +1,12 @@
 package jp.mochisuke.lmmchat.order;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FindBlockOrder extends AIOrderBase{
@@ -35,8 +38,8 @@ public class FindBlockOrder extends AIOrderBase{
         //find nearby block
         var pos=entity.blockPosition();
         int xx=0,yy=0,zz=0;
-        Block foundblock=null;
         int size=40;
+        ArrayList<Tuple<Vec3i,BlockState>> blocks=new ArrayList<>();
         for(int x=pos.getX()-size/2;x<pos.getX()+size/2;x++){
             for(int y=pos.getY()-size/2;y<pos.getY()+size/2;y++){
                 for(int z=pos.getZ()-size/2;z<pos.getZ()+size/2;z++){
@@ -46,29 +49,50 @@ public class FindBlockOrder extends AIOrderBase{
                         xx=x;
                         yy=y;
                         zz=z;
-                        foundblock=block.getBlock();
+                        blocks.add(new Tuple<>(new Vec3i(x,y,z),block));
                     }
                 }
             }
         }
-        if(foundblock==null){
+        if(blocks.size()==0){
             //no block found
             throw new RuntimeException("No block found");
         }
-        pos=new BlockPos(xx,yy,zz);
-        //check blockentity
-        var blockentity=entity.getLevel().getBlockEntity(pos);
-        if(blockentity==null){
-            //no blockentity
-            throw new RuntimeException("No blockentity found:"+entity.getLevel().getBlockState(pos).getBlock().getDescriptionId());
+        Vec3i entitypos=entity.blockPosition();
+        //sort by distance
+        blocks.sort((at,bt)->{
+
+            var a=at.getA();
+            var b=bt.getA();
+            int adist=(a.getX()-entitypos.getX())*(a.getX()-entitypos.getX())+(a.getY()-entitypos.getY())*(a.getY()-entitypos.getY())+(a.getZ()-entitypos.getZ())*(a.getZ()-entitypos.getZ());
+            int bdist=(b.getX()-entitypos.getX())*(b.getX()-entitypos.getX())+(b.getY()-entitypos.getY())*(b.getY()-entitypos.getY())+(b.getZ()-entitypos.getZ())*(b.getZ()-entitypos.getZ());
+            return adist-bdist;
+
+        });
+
+
+
+        String message="";
+        message+="Found "+blocks.size()+" blocks:";
+        int idx=0;
+
+
+
+        for(var block:blocks){
+            message+=""+idx+":"+ block.getB().getBlock().getName().getString()+":"+String.format("%d,%d,%d",xx,yy,zz)+"\n";
         }
-        //store
-        val("x",pos.getX());
-        val("y",pos.getY());
-        val("z",pos.getZ());
+        xx= (int) blocks.get(0).getA().getX();
+        yy= (int) blocks.get(0).getA().getY();
+        zz= (int) blocks.get(0).getA().getZ();
+        //blockentity
+
+        //store variables for nearest block
+        val("x",xx);
+        val("y",yy);
+        val("z",zz);
 
         // reply
-        this.notifyAI(blockentity.getBlockState().getBlock().getName().getString()+" position is "+pos.getX()+","+pos.getY()+","+pos.getZ());
+        this.notifyAI(message);
     }
 
 }

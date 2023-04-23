@@ -1,5 +1,6 @@
 package jp.mochisuke.lmmchat.order;
 
+import jp.mochisuke.lmmchat.goal.AIGoalBase;
 import jp.mochisuke.lmmchat.goal.GiveItemGoal;
 import jp.mochisuke.lmmchat.goal.TakeItemGoal;
 import net.minecraft.world.entity.LivingEntity;
@@ -65,6 +66,7 @@ public class ItemTakeOrder extends AIOrderBase{
         Mob mob=(Mob)entity;
         mob.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof GiveItemGoal).findFirst().ifPresent(g->{
             ((TakeItemGoal) g.getGoal()).setup(target,stack2,itemcount);
+            prepareGoal((AIGoalBase) g.getGoal());
         });
     }
 }

@@ -27,7 +27,7 @@ public class ItemGiveOrder extends AIOrderBase{
         String targetid,itemcount;
         targetid= (String) args.get(1);
         itemcount= (String) args.get(2);
-        this.targetid=val(targetid);
+        this.targetid=Integer.parseInt(targetid);
         this.itemcount=val(itemcount);
 
     }
@@ -63,6 +63,7 @@ public class ItemGiveOrder extends AIOrderBase{
         Mob mob=(Mob)entity;
         mob.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof GiveItemGoal).findFirst().ifPresent(g->{
             ((GiveItemGoal) g.getGoal()).setup(target,stack2,itemcount);
+            prepareGoal((GiveItemGoal) g.getGoal());
         });
     }
 }

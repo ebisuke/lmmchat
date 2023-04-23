@@ -1,5 +1,6 @@
 package jp.mochisuke.lmmchat.order;
 
+import jp.mochisuke.lmmchat.goal.AIGoalBase;
 import jp.mochisuke.lmmchat.goal.BlockItemPickupGoal;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -66,12 +67,16 @@ public class BlockItemPickupOrder extends AIOrderBase{
                 .contains(itemname)).findFirst().ifPresent(i->{
             stack.set(new ItemStack(i));
         });
+        if(stack.get()==null){
+            throw new RuntimeException("item not found");
+        }
 
         final ItemStack stack2=stack.get();
         Mob mob=(Mob)entity;
         mob.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof BlockItemPickupGoal).findFirst().ifPresent(g->{
             logger.info("activate blockitempickupgoal");
             ((BlockItemPickupGoal) g.getGoal()).setup(x,y,z,stack2,minslotindex,maxslotindex);
+            prepareGoal((AIGoalBase) g.getGoal());
         });
     }
 }

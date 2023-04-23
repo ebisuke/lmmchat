@@ -1,5 +1,6 @@
 package jp.mochisuke.lmmchat.order;
 
+import jp.mochisuke.lmmchat.goal.AIGoalBase;
 import jp.mochisuke.lmmchat.goal.MoveGoal;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -43,8 +44,9 @@ public class MoveOrder extends AIOrderBase{
 
         Mob ai=(net.minecraft.world.entity.Mob)entity;
         ai.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof MoveGoal).findFirst().ifPresent(g->{
-            logger.info("activate blockitempickupgoal");
+            logger.info("activate movegoal");
             ((MoveGoal) g.getGoal()).setup(x,y,z);
+            prepareGoal((AIGoalBase) g.getGoal());
         });
     }
 }

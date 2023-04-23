@@ -28,8 +28,8 @@ public class StatusNotificationGoal<T extends TamableAnimal> extends Goal {
 
     @Override
     public void tick() {
-        //per 12000 ticks
-        if(entity.tickCount%12000==1) {
+        //per 1200 ticks
+        if(entity.tickCount%1200==1) {
             if (entity.isTame()) {
                 float hp = entity.getHealth();
                 float maxHp = entity.getMaxHealth();

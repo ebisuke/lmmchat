@@ -4,13 +4,11 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.world.entity.ai.goal.Goal;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-
-public abstract class AIUnitGoalBase extends Goal {
+public abstract class AIGoalBase extends Goal {
     static final Logger logger = LogUtils.getLogger();
-    protected ArrayList<Callback> callback=new ArrayList<>();
+    protected Callback callback;
     boolean active = false;
-    public AIUnitGoalBase() {
+    public AIGoalBase() {
     }
 
     @Override
@@ -20,12 +18,7 @@ public abstract class AIUnitGoalBase extends Goal {
     public boolean canContinueToUse() {
         return canUse();
     }
-    public void addListener(Callback callback) {
-        this.callback.add(callback);
-    }
-    public void removeListener(Callback callback) {
-        this.callback.remove(callback);
-    }
+
     public void activate() {
         active = true;
         start();
@@ -34,21 +27,21 @@ public abstract class AIUnitGoalBase extends Goal {
 
     protected void success() {
         logger.info(this.getClass().getName()+" success");
-        for (Callback cb:callback)
-        {
-            cb.onSuccess();
-        }
-        callback.clear();
         active = false;
+        if(callback!=null)
+            callback.onSuccess();
+
+
     }
     protected void fail(String reason) {
         logger.info(this.getClass().getName()+" fail"+reason);
-        for (Callback cb:callback)
-        {
-            cb.onFailed(reason);
-        }
-        callback.clear();
         active = false;
+        if(callback!=null)
+            callback.onFailed(reason);
+    }
+
+    public void setCallback(Callback aiOrderBase) {
+        this.callback=aiOrderBase;
     }
 
     public interface Callback {

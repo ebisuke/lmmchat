@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class AIOperationGoal  <T extends Mob>  extends Goal implements AIUnitGoalBase.Callback {
+public class AIOperationGoal  <T extends Mob>  extends Goal implements AIGoalBase.Callback {
     static final Logger logger= LogUtils.getLogger();
     protected final T entity;
     private Queue<AIOrderBase> orders;
@@ -32,8 +32,9 @@ public class AIOperationGoal  <T extends Mob>  extends Goal implements AIUnitGoa
     }
 
     public void activate(List<AIOrderBase> orders){
-        for(var order:orders)
+        for(var order:orders) {
             activate(order);
+        }
 
     }
     public void activate(AIOrderBase order){
@@ -59,14 +60,18 @@ public class AIOperationGoal  <T extends Mob>  extends Goal implements AIUnitGoa
     public void onSuccess() {
         var cur=currentOrder;
         currentOrder=null;
-        cur.onSuccess();
+        if(cur!=null) {
+            cur.onSuccess();
+        }
     }
 
     @Override
     public void onFailed(String reason) {
         var cur=currentOrder;
         currentOrder=null;
-        cur.onFailed(reason);
+        if(cur!=null) {
+            cur.onFailed(reason);
+        }
         //dispose all orders
         orders.clear();
         //notify ai
@@ -83,6 +88,8 @@ public class AIOperationGoal  <T extends Mob>  extends Goal implements AIUnitGoa
         if(currentOrder==null){
             currentOrder=orders.poll();
             if(currentOrder!=null){
+                logger.info("AIOperationGoal.tick:execute order:"+currentOrder.getClass().getName());
+
                 try {
                     if (currentOrder.execute()) {
                         //success
@@ -93,5 +100,11 @@ public class AIOperationGoal  <T extends Mob>  extends Goal implements AIUnitGoa
                 }
             }
         }
+    }
+
+    public void forget() {
+        logger.info("AIOperationGoal.forget");
+        orders.clear();
+        currentOrder=null;
     }
 }

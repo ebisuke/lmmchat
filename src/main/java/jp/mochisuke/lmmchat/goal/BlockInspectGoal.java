@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 
 import java.util.EnumSet;
 
-public class BlockInspectGoal<T extends PathfinderMob > extends AIUnitGoalBase {
+public class BlockInspectGoal<T extends PathfinderMob > extends AIGoalBase {
 
     static final Logger logger= LogUtils.getLogger();
     protected final T entity;
@@ -45,7 +45,6 @@ public class BlockInspectGoal<T extends PathfinderMob > extends AIUnitGoalBase {
     @Override
     public void start() {
         // walk to block
-        logger.info("blockitemputgoal start");
         pathFindingRetry=0;
     }
     public void setup(int x, int y, int z) {
@@ -66,11 +65,10 @@ public class BlockInspectGoal<T extends PathfinderMob > extends AIUnitGoalBase {
     @Override
     public void stop() {
         this.entity.getNavigation().stop();
-        fail("interrupted");
     }
     @Override
     public boolean canUse() {
-        return this.active && this.blockEntity!=null;
+        return this.active;
     }
     @Override
     public void tick() {
@@ -80,14 +78,14 @@ public class BlockInspectGoal<T extends PathfinderMob > extends AIUnitGoalBase {
         //walk per 60 ticks
         if (this.entity.tickCount % 60 == 1) {
             // can  reach to block?
-            this.entity.getNavigation().moveTo(this.blockEntity.getBlockPos().getX(),
-                    this.blockEntity.getBlockPos().getY(), this.blockEntity.getBlockPos().getZ(),0.5);
-            if(!this.entity.getNavigation().isDone()) {
-                pathFindingRetry++;
-                if(pathFindingRetry>10) {
-                    fail("can't reach to block");
-                    return;
+            if(!this.entity.getNavigation().moveTo(this.blockEntity.getBlockPos().getX(),
+                    this.blockEntity.getBlockPos().getY(), this.blockEntity.getBlockPos().getZ(), 1)){
+                // can not reach to block
+                if(pathFindingRetry++>10){
+                    fail("can not reach to block");
                 }
+            }else{
+                pathFindingRetry=0;
             }
         }
 

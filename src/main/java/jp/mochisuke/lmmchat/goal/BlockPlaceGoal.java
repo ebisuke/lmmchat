@@ -8,12 +8,13 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.EnumSet;
 
-public class BlockPlaceGoal<T extends Mob> extends AIUnitGoalBase {
+public class BlockPlaceGoal<T extends Mob> extends AIGoalBase {
     protected final T entity;
     protected int x;
     protected int y;
     protected int z;
     protected ItemStack blockItem;
+    int pathFindingRetry=0;
     public BlockPlaceGoal(T entity) {
         this.entity = entity;
     }
@@ -22,7 +23,6 @@ public class BlockPlaceGoal<T extends Mob> extends AIUnitGoalBase {
     public void stop() {
         super.stop();
         entity.getNavigation().stop();
-        fail("interrupted");
     }
 
     public void setup(int  x,int y,int z,ItemStack block) {
@@ -31,6 +31,7 @@ public class BlockPlaceGoal<T extends Mob> extends AIUnitGoalBase {
         this.y=y;
         this.z=z;
         this.blockItem=block;
+        pathFindingRetry=0;
         super.activate();
     }
 
@@ -46,7 +47,14 @@ public class BlockPlaceGoal<T extends Mob> extends AIUnitGoalBase {
         }
         //move per 100 ticks
         if(entity.tickCount%60==1){
-            entity.getNavigation().moveTo(x,y,z,0.5);
+            if(!entity.getNavigation().moveTo(x, y, z, 1)){
+                pathFindingRetry++;
+                if(pathFindingRetry>10){
+                    fail("pathfinding failed");
+                }
+            }else{
+                pathFindingRetry=0;
+            }
         }
 
         //if arrived

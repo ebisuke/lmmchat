@@ -2,7 +2,7 @@ package jp.mochisuke.lmmchat.lmm;
 
 import com.mojang.logging.LogUtils;
 import jp.mochisuke.lmmchat.LMMChat;
-import jp.mochisuke.lmmchat.goal.AIUnitGoalBase;
+import jp.mochisuke.lmmchat.goal.AIGoalBase;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.sistr.littlemaidrebirth.entity.LittleMaidEntity;
@@ -20,7 +20,7 @@ public class Injector {
             //inject goals
             var entity=(LittleMaidEntity)event.getEntity();
             int priority=5;
-            ArrayList<AIUnitGoalBase> goals=new ArrayList<>();
+            ArrayList<AIGoalBase> goals=new ArrayList<>();
             goals.add(new jp.mochisuke.lmmchat.goal.BlockItemPickupGoal<LittleMaidEntity>(entity));
             goals.add(new jp.mochisuke.lmmchat.goal.BlockItemPutGoal<LittleMaidEntity>(entity));
             goals.add(new jp.mochisuke.lmmchat.goal.GiveItemGoal<LittleMaidEntity>(entity));
@@ -32,18 +32,13 @@ public class Injector {
             var operator=new jp.mochisuke.lmmchat.goal.AIOperationGoal<LittleMaidEntity>(entity);
             entity.goalSelector.addGoal(0,operator);
 
-            for(AIUnitGoalBase goal:goals){
+            for(AIGoalBase goal:goals){
                 entity.goalSelector.addGoal(priority,goal);
-                goal.addListener(operator);
+                goal.setCallback(operator);
             }
-//            entity.goalSelector.addGoal(priority,new jp.mochisuke.lmmchat.goal.BlockItemPickupGoal<LittleMaidEntity>(entity));
-//            entity.goalSelector.addGoal(priority,new jp.mochisuke.lmmchat.goal.BlockItemPutGoal<LittleMaidEntity>(entity));
-//            entity.goalSelector.addGoal(priority,new jp.mochisuke.lmmchat.goal.GiveItemGoal<LittleMaidEntity>(entity));
-//            entity.goalSelector.addGoal(priority,new jp.mochisuke.lmmchat.goal.MoveGoal<LittleMaidEntity>(entity));
-//            entity.goalSelector.addGoal(priority,new jp.mochisuke.lmmchat.goal.TakeItemGoal<LittleMaidEntity>(entity));
-              entity.goalSelector.addGoal(priority,new jp.mochisuke.lmmchat.goal.RandomTalkGoal<LittleMaidEntity>(entity));
-              entity.goalSelector.addGoal(1,new jp.mochisuke.lmmchat.goal.StatusNotificationGoal<LittleMaidEntity>(entity));
-//            entity.goalSelector.addGoal(priority,new jp.mochisuke.lmmchat.goal.BlockPlaceGoal<LittleMaidEntity>(entity));
+            entity.goalSelector.addGoal(8,new jp.mochisuke.lmmchat.goal.RandomTalkGoal<LittleMaidEntity>(entity));
+            entity.goalSelector.addGoal(1,new jp.mochisuke.lmmchat.goal.StatusNotificationGoal<LittleMaidEntity>(entity));
+            entity.goalSelector.addGoal(3,new jp.mochisuke.lmmchat.goal.HurtNotificationGoal<LittleMaidEntity>(entity));
 
         }
     }

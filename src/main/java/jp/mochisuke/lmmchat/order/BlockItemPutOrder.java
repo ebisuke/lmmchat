@@ -78,5 +78,6 @@ public class BlockItemPutOrder extends AIOrderBase{
         var m=mob.goalSelector. getAvailableGoals().stream().filter(g->g.getGoal() instanceof BlockItemPutGoal).findFirst();
         var goal=(BlockItemPutGoal) m.get().getGoal();
         goal.setup(x,y,z,stack2,minslotindex,maxslotindex);
+        prepareGoal(goal);
     }
 }

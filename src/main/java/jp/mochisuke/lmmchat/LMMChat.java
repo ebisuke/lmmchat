@@ -29,6 +29,7 @@ import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(LMMChat.MODID)
@@ -53,16 +54,26 @@ public class LMMChat {
     public static void addChatMessage(@Nullable LivingEntity caller,@Nullable LivingEntity callee, boolean callerIsAssistant,
                                       boolean calleeIsAssistant, String callerMessage, int conversationCount){
         // if caller and caller are same entity, do nothing
-        if(caller.equals(callee)){
+        if(Objects.equals(caller, callee)){
             return;
         }
-
-        // check callee is friendly to caller
         boolean friendly = false;
-        if(callee instanceof TamableAnimal){
-            TamableAnimal animal = (TamableAnimal) callee;
-            if(animal.isTame()  && animal.isOwnedBy(caller)){
-                friendly = true;
+        if(caller!=null) {
+            // check callee is friendly to caller
+
+            if (callee instanceof TamableAnimal) {
+                TamableAnimal animal = (TamableAnimal) callee;
+                if (animal.isTame() && animal.isOwnedBy(caller)) {
+                    friendly = true;
+                }
+            }
+        }else{
+
+            if (callee instanceof TamableAnimal) {
+                TamableAnimal animal = (TamableAnimal) callee;
+                if (animal.isTame() ) {
+                    friendly = true;
+                }
             }
         }
         ChatPreface preface;
@@ -74,7 +85,7 @@ public class LMMChat {
 
 
         ChatGenerationRequest request = new ChatGenerationRequest(caller,callee,callerIsAssistant,
-                calleeIsAssistant,callerMessage,caller.getLevel().getGameTime(),conversationCount,preface);
+                calleeIsAssistant,callerMessage,caller!=null?caller.getLevel().getGameTime():callee.getLevel().getGameTime(),conversationCount,preface);
         Minecraft.getInstance().execute(() -> {
             chatThread.PushRequest(request);
         });

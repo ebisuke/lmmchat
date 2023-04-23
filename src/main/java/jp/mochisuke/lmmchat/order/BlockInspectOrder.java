@@ -20,7 +20,7 @@ public class BlockInspectOrder extends AIOrderBase{
 
     @Override
     protected void startUp(LivingEntity entity, VariablesContext context, List<Object> args) {
-        String x,y,z,minslotindex,maxslotindex;
+        String x,y,z;
         x= (String) args.get(0);
         y= (String) args.get(1);
         z= (String) args.get(2);
@@ -41,7 +41,7 @@ public class BlockInspectOrder extends AIOrderBase{
 
     @Override
     public void onFailed(String reason) {
-        notifyAI("inspect fail:"+reason);
+        notifyAI(String.format("inspect fail(%d,%d,%d):"+reason,x,y,z));
     }
 
     @Override
@@ -50,5 +50,7 @@ public class BlockInspectOrder extends AIOrderBase{
         var m=mob.goalSelector. getAvailableGoals().stream().filter(g->g.getGoal() instanceof BlockInspectGoal).findFirst();
         var goal=(BlockInspectGoal) m.get().getGoal();
         goal.setup(x,y,z);
+        prepareGoal(goal);
+        logger.info("inspect order executed");
     }
 }

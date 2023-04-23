@@ -9,7 +9,7 @@ import net.sistr.littlemaidrebirth.entity.util.HasInventory;
 import java.lang.reflect.Field;
 import java.util.EnumSet;
 
-public class GiveItemGoal <T extends PathfinderMob & HasInventory>  extends AIUnitGoalBase {
+public class GiveItemGoal <T extends PathfinderMob & HasInventory>  extends AIGoalBase {
 
     protected final T entity;
 
@@ -56,7 +56,6 @@ public class GiveItemGoal <T extends PathfinderMob & HasInventory>  extends AIUn
     @Override
     public void stop() {
         this.entity.getNavigation().stop();
-        fail("interrupted");
     }
 
     @Override
@@ -71,7 +70,7 @@ public class GiveItemGoal <T extends PathfinderMob & HasInventory>  extends AIUn
         }
         //follow to target per 60 ticks
         if(this.entity.tickCount%60==1){
-            this.entity.getNavigation().moveTo(this.targetEntity.getX(),this.targetEntity.getY(),this.targetEntity.getZ(),0.5);
+            this.entity.getNavigation().moveTo(this.targetEntity.getX(),this.targetEntity.getY(),this.targetEntity.getZ(),1);
         }
         // is target near?
         if(this.entity.distanceTo(this.targetEntity)<4){

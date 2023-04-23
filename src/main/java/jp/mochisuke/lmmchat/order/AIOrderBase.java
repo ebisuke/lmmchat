@@ -7,13 +7,16 @@ import jp.mochisuke.lmmchat.chat.ChatData;
 import jp.mochisuke.lmmchat.chat.ChatGenerationCallback;
 import jp.mochisuke.lmmchat.chat.ChatGenerationRequest;
 import jp.mochisuke.lmmchat.chat.ChatPreface;
+import jp.mochisuke.lmmchat.goal.AIGoalBase;
+import jp.mochisuke.lmmchat.goal.AIOperationGoal;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import org.slf4j.Logger;
 
 import java.util.List;
 
-public abstract class AIOrderBase implements ChatGenerationCallback {
+public abstract class AIOrderBase implements ChatGenerationCallback,AIGoalBase.Callback {
     public static final Logger logger= LogUtils.getLogger();
     protected final LivingEntity entity;
     protected final VariablesContext context;
@@ -48,6 +51,8 @@ public abstract class AIOrderBase implements ChatGenerationCallback {
     protected void val(String o,double value){
         context.setVar(o,(double)value);
     }
+
+
     public interface Generator{
         AIOrderBase generate(LivingEntity entity,VariablesContext context, List<Object> args);
     }
@@ -62,12 +67,15 @@ public abstract class AIOrderBase implements ChatGenerationCallback {
     }
     protected abstract void executeImpl();
 
+    @Override
     public void onSuccess(){
         //nothing to do
     }
+    @Override
     public void onFailed(String reason){
         //nothing to do
-
+        //remove all order
+        getOperationGoal().forget();
     }
 
     public void notifyAI(String message){
@@ -99,8 +107,21 @@ public abstract class AIOrderBase implements ChatGenerationCallback {
 
         // send chat
         sendChatFromAssitant(response.getCalleeMessage(),request.getCaller());
+    }
 
+    public AIOperationGoal getOperationGoal(){
+        Mob mob=(Mob) entity;
 
+        //find
+        var m=mob.goalSelector. getAvailableGoals().stream().filter(g->g.getGoal() instanceof AIOperationGoal).findFirst();
+        if(m.isPresent()){
+            return (AIOperationGoal) m.get().getGoal();
+        }
+        return null;
+
+    }
+
+    protected void prepareGoal(AIGoalBase goal){
     }
 
 }

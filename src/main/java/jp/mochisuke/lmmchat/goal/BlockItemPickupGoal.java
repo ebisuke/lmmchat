@@ -8,12 +8,12 @@ import net.sistr.littlemaidrebirth.entity.util.HasInventory;
 
 import java.util.EnumSet;
 
-public class BlockItemPickupGoal<T extends PathfinderMob & HasInventory> extends AIUnitGoalBase {
+public class BlockItemPickupGoal<T extends PathfinderMob & HasInventory> extends AIGoalBase {
 
 
     protected final T entity;
     private BaseContainerBlockEntity blockEntity;
-
+    private int pathFindingRetry=0;
     private ItemStack wantsItemStack;
 
     //target slot index range
@@ -42,6 +42,7 @@ public class BlockItemPickupGoal<T extends PathfinderMob & HasInventory> extends
         this.wantsItemStack=wantsItemStack;
         this.minSlotIndex=minslotindex;
         this.maxSlotIndex=maxslotindex;
+        pathFindingRetry=0;
         super.activate();
     }
 
@@ -53,7 +54,6 @@ public class BlockItemPickupGoal<T extends PathfinderMob & HasInventory> extends
     @Override
     public void stop() {
         this.entity.getNavigation().stop();
-        fail("interrupted");
     }
 
     @Override
@@ -69,22 +69,8 @@ public class BlockItemPickupGoal<T extends PathfinderMob & HasInventory> extends
     @Override
     public boolean canUse() {
 
-        if(this.blockEntity==null){
-            return false;
-        }
-        // check done flag and inventory is full
-        boolean isFull=true;
-        for(int i=minSlotIndex;i<maxSlotIndex;i++){
-            if(entity.getInventory().getItem(i).isEmpty()){
-                isFull=false;
-                break;
-            }
-        }
 
-        if (active || false/*isFull*/ ) {
-            return false;
-        }
-        return true;
+        return this.active;
     }
 
     @Override
@@ -94,8 +80,15 @@ public class BlockItemPickupGoal<T extends PathfinderMob & HasInventory> extends
         }
         //walk per 60 ticks
         if (this.entity.tickCount % 60 == 1) {
-            this.entity.getNavigation().moveTo(this.blockEntity.getBlockPos().getX(),
-                    this.blockEntity.getBlockPos().getY(), this.blockEntity.getBlockPos().getZ(),0.5);
+            if(!this.entity.getNavigation().moveTo(this.blockEntity.getBlockPos().getX(),
+                    this.blockEntity.getBlockPos().getY(), this.blockEntity.getBlockPos().getZ(),1)){
+                pathFindingRetry++;
+                if(pathFindingRetry>10){
+                    fail("pathfinding failed");
+                }
+            }else{
+                pathFindingRetry=0;
+            }
         }
 
         // check distance to block
@@ -109,7 +102,9 @@ public class BlockItemPickupGoal<T extends PathfinderMob & HasInventory> extends
                 mn=0;
                 mx=blockEntity.getContainerSize()-1;
             }
-
+            //fit
+            mn=Math.max(0,mn);
+            mx=Math.min(blockEntity.getContainerSize()-1,mx);
             boolean picked=false;
             for(int i=mn;i<=mx;i++){
                 var item=blockEntity.getItem(i);
@@ -117,15 +112,15 @@ public class BlockItemPickupGoal<T extends PathfinderMob & HasInventory> extends
                     picked=true;
 
                     // pick up item
-                    for(int j=minSlotIndex;j<maxSlotIndex;j++){
+                    for(int j=0;j<entity.getInventory().getContainerSize();j++){
                         if(entity.getInventory().getItem(j).isEmpty()){
 
-                            var pickedUpItem=blockEntity.removeItem(i,1);
+                            var pickedUpItem=blockEntity.removeItem(i,item.getCount());
 
                             // put item in inventory
                             entity.getInventory().setItem(j,pickedUpItem);
                             success();
-                            break;
+                            return;
                         }
                     }
                     //fail
