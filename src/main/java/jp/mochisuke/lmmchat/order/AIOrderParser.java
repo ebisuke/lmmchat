@@ -12,7 +12,6 @@ public class AIOrderParser {
 
     public static String parsedRemnant(String orders){
         //remove @ and ! lines
-        orders = orders.replaceAll("(?m)^@.*\n?", "");
         orders = orders.replaceAll("(?m)^!.*\n?", "");
         return orders;
     }

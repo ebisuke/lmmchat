@@ -1,6 +1,7 @@
 package jp.mochisuke.lmmchat.chat;
 
 import com.mojang.logging.LogUtils;
+import jp.mochisuke.lmmchat.LMMChatConfig;
 import org.slf4j.Logger;
 
 import java.util.Queue;
@@ -61,6 +62,7 @@ public class ChatThread {
                         chatDataQueue.add(ret);
                     } catch (TooLongConversationException e) {
                         //half history
+                        logger.info("conversation is too long. compacting history..");
                         history.chatDataList.subList(0, history.chatDataList.size() / 2).clear();
                         //retry
                         chatGenerationRequestQueue.add(chatData);
@@ -82,6 +84,9 @@ public class ChatThread {
     }
     public void PushRequest (ChatGenerationRequest chatGenerationRequest){
         chatGenerationRequestQueue.add(chatGenerationRequest);
+        while(chatGenerationRequestQueue.size()> LMMChatConfig.getMaxQueueSize()){
+            chatGenerationRequestQueue.poll();
+        }
     }
     public ChatData PopChatData () {
         return chatDataQueue.poll();

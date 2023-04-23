@@ -61,17 +61,22 @@ public class BlockItemPutOrder extends AIOrderBase{
         //convert itemname to item
         var container= Helper.getInventoryContainer(this.entity);
         ItemStack stack=null;
-        for(int i=0;i<container.getContainerSize();i++){
-            var item=container.getItem(i);
-            logger.info("item:"+item.getDescriptionId());
-            if(item.getDescriptionId().contains(itemname)){
-                stack=item;
-                break;
+        if(itemname.equals("-")){
+
+        }else{
+            for (int i = 0; i < container.getContainerSize(); i++) {
+                var item = container.getItem(i);
+                logger.info("item:" + item.getDescriptionId());
+                if (item.getDescriptionId().contains(itemname)) {
+                    stack = item;
+                    break;
+                }
+            }
+            if(stack==null){
+                throw new RuntimeException("No item found");
             }
         }
-        if(stack==null){
-            throw new RuntimeException("No item found");
-        }
+
         final ItemStack stack2=stack;
         Mob mob=(Mob)entity;
 

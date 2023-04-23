@@ -101,6 +101,26 @@ public class GiveItemGoal <T extends PathfinderMob & HasInventory>  extends AIGo
 
 
             int remain=itemCount;
+            if(this.giveItemStack==null){
+                //pick something
+                for(int slot=0;slot<container.getContainerSize();slot++ ){
+                    ItemStack itemStack=container.getItem(slot);
+                    if(!itemStack.isEmpty()){
+                        //found item
+                        this.giveItemStack=itemStack;
+                        break;
+                    }
+                }
+                if(this.giveItemStack==null){
+                    //not found item
+                    fail("not found item");
+                    return;
+                }
+            }
+            if(remain==-1){
+                //give all
+                remain=this.giveItemStack.getCount();
+            }
             //find empty slot or stack item
             for(int slot=0;slot<container.getContainerSize();slot++ ){
                 ItemStack itemStack=container.getItem(slot);

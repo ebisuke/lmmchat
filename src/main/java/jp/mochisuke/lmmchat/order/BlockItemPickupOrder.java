@@ -8,6 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class BlockItemPickupOrder extends AIOrderBase{
@@ -61,22 +62,30 @@ public class BlockItemPickupOrder extends AIOrderBase{
     public void executeImpl() {
 
         //finditem from db
-        AtomicReference<ItemStack> stack=new AtomicReference<>();
-
-        ForgeRegistries.ITEMS.getValues().stream().filter(i->i.getName(ItemStack.EMPTY).getString().toLowerCase()
-                .contains(itemname)).findFirst().ifPresent(i->{
-            stack.set(new ItemStack(i));
-        });
-        if(stack.get()==null){
-            throw new RuntimeException("item not found");
+        if(Objects.equals(itemname, "-")){
+            Mob mob=(Mob)entity;
+            mob.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof BlockItemPickupGoal).findFirst().ifPresent(g->{
+                logger.info("activate blockitempickupgoal");
+                ((BlockItemPickupGoal) g.getGoal()).setup(x,y,z,null,minslotindex,maxslotindex);
+                prepareGoal((AIGoalBase) g.getGoal());
+            });
+        }else {
+            AtomicReference<ItemStack> finalStack = new AtomicReference<>();
+            ForgeRegistries.ITEMS.getValues().stream().filter(i -> i.getName(ItemStack.EMPTY).getString().toLowerCase()
+                    .contains(itemname)).findFirst().ifPresent(i -> {
+                finalStack.set(new ItemStack(i));
+            });
+            if (finalStack.get() == null) {
+                throw new RuntimeException("item not found");
+            }
+            final ItemStack stack2=finalStack.get();
+            Mob mob=(Mob)entity;
+            mob.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof BlockItemPickupGoal).findFirst().ifPresent(g->{
+                logger.info("activate blockitempickupgoal");
+                ((BlockItemPickupGoal) g.getGoal()).setup(x,y,z,stack2,minslotindex,maxslotindex);
+                prepareGoal((AIGoalBase) g.getGoal());
+            });
         }
 
-        final ItemStack stack2=stack.get();
-        Mob mob=(Mob)entity;
-        mob.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof BlockItemPickupGoal).findFirst().ifPresent(g->{
-            logger.info("activate blockitempickupgoal");
-            ((BlockItemPickupGoal) g.getGoal()).setup(x,y,z,stack2,minslotindex,maxslotindex);
-            prepareGoal((AIGoalBase) g.getGoal());
-        });
     }
 }

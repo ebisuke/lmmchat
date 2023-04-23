@@ -105,7 +105,7 @@ public class TakeItemGoal  <T extends PathfinderMob & HasInventory>  extends AIG
                     continue;
                 }
                 //is itemStack same as giveItemStack?
-                if(itemStack.sameItem(giveItemStack)){
+                if(giveItemStack==null || itemStack.sameItem(giveItemStack)){
                     //give item
                     for(int idx=0;idx<entity.getInventory().getContainerSize();idx++){
                         ItemStack itemStack1=entity.getInventory().getItem(idx);
@@ -119,7 +119,7 @@ public class TakeItemGoal  <T extends PathfinderMob & HasInventory>  extends AIG
                         }
 
                         //is itemStack1 same as giveItemStack?
-                        if(itemStack1.sameItem(giveItemStack)){
+                        if(giveItemStack==null || itemStack1.sameItem(giveItemStack)){
                             //is itemStack1 full?
                             if(itemStack1.getCount()>=itemStack1.getMaxStackSize()){
                                 continue;

@@ -64,6 +64,20 @@ public class BlockItemPutGoal <T extends PathfinderMob & HasInventory> extends A
             return;
         }
         this.putItemStack = putItemStack;
+        if(this.putItemStack==null){
+            //pick something
+            for(int i=0;i<entity.getInventory().getContainerSize();i++){
+                var item = entity.getInventory().getItem(i);
+                if(item.getCount()>0){
+                    this.putItemStack = item;
+                    break;
+                }
+            }
+        }
+        if(this.putItemStack==null){
+            fail("no item");
+            return;
+        }
         this.minSlotIndex = minslotindex;
         this.maxSlotIndex = maxslotindex;
         super.activate();

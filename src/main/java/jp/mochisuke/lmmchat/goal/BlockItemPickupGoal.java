@@ -108,7 +108,7 @@ public class BlockItemPickupGoal<T extends PathfinderMob & HasInventory> extends
             boolean picked=false;
             for(int i=mn;i<=mx;i++){
                 var item=blockEntity.getItem(i);
-                if(item.getItem()==this.wantsItemStack.getItem()){
+                if(this.wantsItemStack==null || item.getItem()==this.wantsItemStack.getItem()){
                     picked=true;
 
                     // pick up item

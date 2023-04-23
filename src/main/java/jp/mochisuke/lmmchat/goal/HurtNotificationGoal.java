@@ -29,20 +29,19 @@ public class HurtNotificationGoal<T extends TamableAnimal> extends Goal {
             cooldown--;
             return;
         }
-        if(entity.tickCount%10==1) {
-            int hp= (int) entity.getHealth();
+            float hp = entity.getHealth();
             if(hp>prevHealth){
                 prevHealth=hp;
             }else if(hp<prevHealth) {
-                float damage=prevHealth-hp;
+                float damage = prevHealth - hp;
                 prevHealth = hp;
 
-                String msg=String.format("you took %.0f damage. hp %.0f/%.0f",damage,(float)hp,entity.getMaxHealth());
-                LMMChat.addChatMessage(null,entity,true,false,msg,0);
-                cooldown=400;
+
+                String msg = String.format("メイドさんは %.0f のダメージを受けました。残りHPは %.0f/%.0f です。 (%.0f%%)", damage, (float) hp, entity.getMaxHealth(), (hp / entity.getMaxHealth() * 100));
+                LMMChat.addChatMessage(null, entity, true, false, msg, 0);
+                cooldown = 400;
             }
 
 
-        }
     }
 }

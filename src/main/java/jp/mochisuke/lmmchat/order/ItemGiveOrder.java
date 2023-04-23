@@ -7,6 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ItemGiveOrder extends AIOrderBase{
@@ -49,21 +50,31 @@ public class ItemGiveOrder extends AIOrderBase{
 
     @Override
     public void executeImpl() {
+        if(Objects.equals(itemname,"-")){
+            var target = (LivingEntity) entity.getLevel().getEntity(targetid);
+            Mob mob = (Mob) entity;
+            mob.goalSelector.getAvailableGoals().stream().filter(g -> g.getGoal() instanceof GiveItemGoal).findFirst().ifPresent(g -> {
+                ((GiveItemGoal) g.getGoal()).setup(target, null, itemcount);
+                prepareGoal((GiveItemGoal) g.getGoal());
+            });
+        }else {
+            //finditem from db
+            AtomicReference<ItemStack> stack = null;
 
-        //finditem from db
-        AtomicReference<ItemStack> stack=null;
+            ForgeRegistries.ITEMS.getValues().stream().filter(i -> i.getDescriptionId().toLowerCase().contains(itemname)).findFirst().ifPresent(i -> {
+                stack.set(new ItemStack(i));
+            });
 
-        ForgeRegistries.ITEMS.getValues().stream().filter(i->i.getDescriptionId().toLowerCase().contains(itemname)).findFirst().ifPresent(i->{
-            stack.set(new ItemStack(i));
-        });
+            final ItemStack stack2 = stack.get();
+            //entity id to entity
+            var target = (LivingEntity) entity.getLevel().getEntity(targetid);
+            Mob mob = (Mob) entity;
+            mob.goalSelector.getAvailableGoals().stream().filter(g -> g.getGoal() instanceof GiveItemGoal).findFirst().ifPresent(g -> {
+                ((GiveItemGoal) g.getGoal()).setup(target, stack2, itemcount);
+                prepareGoal((GiveItemGoal) g.getGoal());
+            });
+        }
 
-        final ItemStack stack2=stack.get();
-        //entity id to entity
-        var target=(LivingEntity) entity.getLevel().getEntity(targetid);
-        Mob mob=(Mob)entity;
-        mob.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof GiveItemGoal).findFirst().ifPresent(g->{
-            ((GiveItemGoal) g.getGoal()).setup(target,stack2,itemcount);
-            prepareGoal((GiveItemGoal) g.getGoal());
-        });
+
     }
 }

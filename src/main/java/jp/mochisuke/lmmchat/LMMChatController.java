@@ -64,6 +64,7 @@ public class LMMChatController {
             if(calleeMessage.startsWith("@")){
                 forceOwner=true;
             }
+            logger.info("callee:"+calleeMessage);
             // ---------- SHOW CHAT ---------
             var calleeMessageChat=AIOrderParser.parsedRemnant(calleeMessage);
             if(!calleeMessageChat.strip().isEmpty()) {
