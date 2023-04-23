@@ -5,13 +5,11 @@ import jp.mochisuke.lmmchat.goal.AIOperationGoal;
 import jp.mochisuke.lmmchat.order.AIOrderBase;
 import jp.mochisuke.lmmchat.order.AIOrderParser;
 import jp.mochisuke.lmmchat.order.VariablesContext;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
-import net.minecraft.world.level.Level;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -131,16 +129,7 @@ public class LMMChatController {
                 //forget previous order
                 aiop.forget();
                 //check running thread
-                if(Minecraft.getInstance().isSameThread()) {
-                    aiop.activate(orders);
-                }else{
-                    //is same to level thread?
-                    Level level=callee.getCommandSenderWorld();
-
-                    Minecraft.getInstance().execute(()->{
-                        aiop.activate(orders);
-                    });
-                }
+                aiop.activate(orders);
 
                 return;
             }

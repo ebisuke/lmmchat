@@ -9,7 +9,6 @@ import jp.mochisuke.lmmchat.chat.ChatGenerationRequest;
 import jp.mochisuke.lmmchat.chat.ChatPreface;
 import jp.mochisuke.lmmchat.goal.AIGoalBase;
 import jp.mochisuke.lmmchat.goal.AIOperationGoal;
-import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import org.slf4j.Logger;
@@ -86,7 +85,7 @@ public abstract class AIOrderBase implements ChatGenerationCallback,AIGoalBase.C
         }
         ChatPreface preface = new ChatPreface(LMMChatConfig.getPreface());
         var req=new ChatGenerationRequest(null,entity,true,false,message,
-                Minecraft.getInstance().player.getLevel().getGameTime(),0, preface);
+                LMMChat.getServerTime(),0, preface);
         req.setCallback(this);
         LMMChat.chatThread.PushRequest(req);
     }

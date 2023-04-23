@@ -6,7 +6,6 @@ import jp.mochisuke.lmmchat.LMMChatConfig;
 import jp.mochisuke.lmmchat.chat.ChatGenerationRequest;
 import jp.mochisuke.lmmchat.chat.ChatPreface;
 import jp.mochisuke.lmmchat.order.AIOrderBase;
-import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import org.slf4j.Logger;
@@ -78,7 +77,8 @@ public class AIOperationGoal  <T extends Mob>  extends Goal implements AIGoalBas
         logger.info("AIOperationGoal.onFailed:"+reason);
         ChatPreface preface = new ChatPreface(LMMChatConfig.getPreface());
         var req=new ChatGenerationRequest(null,entity,true,false,reason,
-                Minecraft.getInstance().player.getLevel().getGameTime(),0, preface);
+                LMMChat.getServerTime()
+                ,0, preface);
         LMMChat.chatThread.PushRequest(req);
     }
 

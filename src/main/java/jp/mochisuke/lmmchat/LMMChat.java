@@ -6,6 +6,7 @@ import jp.mochisuke.lmmchat.chat.ChatPreface;
 import jp.mochisuke.lmmchat.chat.ChatThread;
 import jp.mochisuke.lmmchat.order.AIOrderDefinitions;
 import net.minecraft.client.Minecraft;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.item.BlockItem;
@@ -50,7 +51,7 @@ public class LMMChat {
     public static final RegistryObject<Block> EXAMPLE_BLOCK = BLOCKS.register("example_block", () -> new Block(BlockBehaviour.Properties.of(Material.STONE)));
     // Creates a new BlockItem with the id "LMMChat:example_block", combining the namespace and path
     public static final RegistryObject<Item> EXAMPLE_BLOCK_ITEM = ITEMS.register("example_block", () -> new BlockItem(EXAMPLE_BLOCK.get(), new Item.Properties().tab(CreativeModeTab.TAB_BUILDING_BLOCKS)));
-
+    private static MinecraftServer server;
     public static void addChatMessage(@Nullable LivingEntity caller,@Nullable LivingEntity callee, boolean callerIsAssistant,
                                       boolean calleeIsAssistant, String callerMessage, int conversationCount){
         // if caller and caller are same entity, do nothing
@@ -86,9 +87,7 @@ public class LMMChat {
 
         ChatGenerationRequest request = new ChatGenerationRequest(caller,callee,callerIsAssistant,
                 calleeIsAssistant,callerMessage,caller!=null?caller.getLevel().getGameTime():callee.getLevel().getGameTime(),conversationCount,preface);
-        Minecraft.getInstance().execute(() -> {
-            chatThread.PushRequest(request);
-        });
+        chatThread.PushRequest(request);
     }
     public LMMChat() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -122,8 +121,12 @@ public class LMMChat {
         LOGGER.info("HELLO from server starting");
         //generate chat thread
         chatThread = new ChatThread();
+        server = event.getServer();
     }
 
+    public static long getServerTime(){
+        return server.getLevel(net.minecraft.world.level.Level.OVERWORLD).getGameTime();
+    }
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {

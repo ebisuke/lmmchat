@@ -127,21 +127,6 @@ public class OpenAIChat implements IChatBase{
                 return null;
             }
         }
-//        OpenAIController controller = new OpenAIController();
-//        String message=controller.generate(chatHistory,req);
-//
-//        ChatData chatData = new ChatData(
-//                req.getCallerMessage(),
-//                message,
-//
-//                //current minecraft timeofday
-//                Minecraft.getInstance().player.getLevel().getGameTime(),
-//                req.getCaller(),
-//                req.getCallee(),
-//                req.getConversationCount()+1
-//        );
-//        chatHistory.Add(chatData);
-//        return chatData;
         return null;
     }
 }

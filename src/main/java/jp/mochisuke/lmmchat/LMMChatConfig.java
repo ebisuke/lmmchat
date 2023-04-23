@@ -83,6 +83,10 @@ public class LMMChatConfig  {
 !findowner: ご主人様を探します。変数id,x,y,zにそれぞれの値が格納されます。
 !findblock blockname: 指定された名前のブロックを検索します。変数x,y,zに座標が格納されます。
 !concentrate: 一定時間、短い間隔で定時プロンプトを送信します。細かいアクションを行う際に最適です。繰り返し使用できます。
+!swap: メインハンドとオフハンドのアイテムを切り替えます。
+!check slotindex: アイテムを調べます。slotindexを指定しなかった場合はメインハンドのアイテムを調べます。
+!wield slotindex,to: アイテムを装備します。-1は無を表します。toはそれぞれmainhand,offhand,head,chest,legs,feetを指定できます。
+
                 """;
         var default_neutral_prompt= """
 あなたは野良メイドさんです。あなたはどのご主人様にも仕えていません。あなたはマインクラフトの世界にいます。あなたは若い猫娘のように語尾が「にゃ」で話します。あなたはどのような場合でも日本語を話します。

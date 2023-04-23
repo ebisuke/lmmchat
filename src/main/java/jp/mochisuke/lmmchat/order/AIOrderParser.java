@@ -11,9 +11,19 @@ public class AIOrderParser {
     static final Logger logger = LogUtils.getLogger();
 
     public static String parsedRemnant(String orders){
-        //remove @ and ! lines
-        orders = orders.replaceAll("(?m)^!.*\n?", "");
-        return orders;
+        //remove ! lines
+        //after ! will remove
+        var lines=orders.split("[\n|\\n]");
+        StringBuilder sb=new StringBuilder();
+        for(var line:lines){
+            if(line.contains("!")){
+                sb.append(line.substring(0,line.indexOf("!")));
+            }else{
+                sb.append(line);
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
     }
     public static List<AIOrderBase> parse(LivingEntity sender, VariablesContext context, String orders){
         //format
@@ -26,11 +36,12 @@ public class AIOrderParser {
 
 
         for(String orderLine : ordertext) {
-            if(!orderLine.startsWith("!")){
+            if(!orderLine.contains("!")){
                 continue;
             }
-            //remove !
-            orderLine = orderLine.substring(1);
+
+            //remove before !
+            orderLine = orderLine.substring(orderLine.indexOf("!")+1);
             //remove {}
             orderLine = orderLine.replaceAll("[{|}]", "");
             //remove ""
@@ -58,13 +69,19 @@ public class AIOrderParser {
             //get args
             if(orderNameAndArgs.length == 1){
                 //create order
-                parsed.add(AIOrderDefinitions.createOrder(sender,orderName,context, List.of()));
+                var ret=AIOrderDefinitions.createOrder(sender,orderName,context, List.of());
+                if(ret!=null){
+                    parsed.add(ret);
+                }
                 continue;
             }
             String[] args = orderNameAndArgs[1].split(",");
 
             //create order
-            parsed.add(AIOrderDefinitions.createOrder(sender,orderName,context, List.of((Object[]) args)));
+            var ret=AIOrderDefinitions.createOrder(sender,orderName,context, List.of((Object[]) args));
+            if(ret!=null){
+                parsed.add(ret);
+            }
         }
         logger.info("parsed order:"+parsed.size());
         //set intermediate flag

@@ -15,6 +15,9 @@ public class AIOrderDefinitions {
 
     public static AIOrderBase createOrder(LivingEntity mob, String orderName, VariablesContext context, List<Object> args){
         //get constructor
+        if(!orders.containsKey(orderName)){
+            return null;
+        }
         var gen = orders.get(orderName).generate(mob,context,args);
         //generate
         return gen;
@@ -36,6 +39,10 @@ public class AIOrderDefinitions {
         register("pick", BlockItemPickupOrder::new);
         register("pos", PositionOrder::new);
         register("inspect", BlockInspectOrder::new);
+        register("concentrate", ConcentrateOrder::new);
+        register("swap", SwapHandOrder::new);
+        register("check", CheckItemOrder::new);
+        register("wield", WieldOrder::new);
 
 
     }

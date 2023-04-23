@@ -22,6 +22,11 @@ public class StatusNotificationGoal<T extends TamableAnimal> extends Goal {
     }
 
     @Override
+    public boolean requiresUpdateEveryTick() {
+        return true;
+    }
+
+    @Override
     public boolean canContinueToUse() {
         return canUse();
     }
@@ -61,7 +66,7 @@ public class StatusNotificationGoal<T extends TamableAnimal> extends Goal {
 
                 int sugarcount=0;
                 for(int i=0;i<inventory.getContainerSize();i++){
-                    if(inventory.getItem(i).getDescriptionId().equals("minecraft:sugar")){
+                    if(inventory.getItem(i).getDescriptionId().equals("item::minecraft:sugar")){
                         sugarcount+=inventory.getItem(i).getCount();
                     }
                 }
