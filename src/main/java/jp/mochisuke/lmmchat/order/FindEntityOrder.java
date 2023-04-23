@@ -1,7 +1,6 @@
 package jp.mochisuke.lmmchat.order;
 
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 
 import java.util.List;
@@ -10,7 +9,7 @@ public class FindEntityOrder extends AIOrderBase{
 
     String entityname;
 
-    public FindEntityOrder(Mob entity,VariablesContext context, List<Object> args) {
+    public FindEntityOrder(LivingEntity entity,VariablesContext context, List<Object> args) {
 
         super(entity,context, args);
 
@@ -20,16 +19,21 @@ public class FindEntityOrder extends AIOrderBase{
     }
 
     @Override
-    protected void startUp(Mob entity, VariablesContext context, List<Object> args) {
+    protected void startUp(LivingEntity entity, VariablesContext context, List<Object> args) {
         entityname= (String) args.get(0);
 
+    }
+
+    @Override
+    protected boolean isImmediate() {
+        return true;
     }
 
     @Override
     public void executeImpl() {
         //find nearby entity
         var nearentities=entity.getLevel().getNearbyEntities(LivingEntity.class, TargetingConditions.forNonCombat(), entity,
-                entity.getBoundingBox().inflate(30));
+                entity.getBoundingBox().inflate(40));
 
         if(nearentities.size()==0){
             //no entity found
@@ -37,18 +41,17 @@ public class FindEntityOrder extends AIOrderBase{
             return;
         }
         //pick first
-        var target=nearentities.stream().filter(e->e.getName().getString().contains(entityname)).findFirst().orElse(null);
+        var target=nearentities.stream().filter(e->e.getDisplayName().getString().contains(entityname)).findFirst().orElse(null);
 
         if(target==null){
             //no entity found
-            this.notifyAI("No entity found");
-            return;
+            throw new RuntimeException("No entity found");
         }
         //get target id
         var targetid=target.getId();
 
         // reply
-        this.notifyAI("Target id is "+targetid);
+        this.notifyAI("Target name:"+target.getDisplayName() +" id:"+targetid);
 
         //store
         val("id",targetid);

@@ -1,17 +1,24 @@
 package jp.mochisuke.lmmchat.order;
 
-import net.minecraft.world.entity.Mob;
+import com.mojang.logging.LogUtils;
+import net.minecraft.world.entity.LivingEntity;
+import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Vector;
 
 public class AIOrderParser {
-    public static List<AIOrderBase> parse(Mob sender,VariablesContext context, String orders){
+    static final Logger logger = LogUtils.getLogger();
+    public static List<AIOrderBase> parse(LivingEntity sender, VariablesContext context, String orders){
         //format
         //order_name arg1,arg2,arg3...
         Vector<AIOrderBase> parsed = new Vector<>();
         //split by newline
-        String[] ordertext = orders.split("\n");
+        String[] ordertext = orders.split("[\n|\\n]");
+
+
+
+
         for(String orderLine : ordertext) {
             if(!orderLine.startsWith("!")){
                 continue;
@@ -34,6 +41,11 @@ public class AIOrderParser {
 
             //create order
             parsed.add(AIOrderDefinitions.createOrder(sender,orderName,context, List.of((Object[]) args)));
+        }
+        logger.info("parsed order:"+parsed.size());
+        //set intermediate flag
+        for(int i=0;i<parsed.size()-1;i++){
+            parsed.get(i).setIntermediate(true);
         }
         return parsed;
 

@@ -1,18 +1,19 @@
 package jp.mochisuke.lmmchat.order;
 
 import jp.mochisuke.lmmchat.goal.MoveGoal;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 
 import java.util.List;
 
 public class MoveOrder extends AIOrderBase{
 
-    public MoveOrder(Mob entity, VariablesContext context, List<Object> args) {
+    public MoveOrder(LivingEntity entity, VariablesContext context, List<Object> args) {
         super(entity, context, args);
     }
     //x,y,z
     private double x,y,z;
-    public void startUp(Mob entity,VariablesContext context, List<Object> args){
+    public void startUp(LivingEntity entity,VariablesContext context, List<Object> args){
         String x,y,z;
         x= (String) args.get(0);
         y= (String) args.get(1);
@@ -21,6 +22,12 @@ public class MoveOrder extends AIOrderBase{
         this.y=val(y);
         this.z=val(z);
     }
+
+    @Override
+    protected boolean isImmediate() {
+        return false;
+    }
+
     @Override
     public void onSuccess() {
         notifyAI("moved");
@@ -34,6 +41,10 @@ public class MoveOrder extends AIOrderBase{
     @Override
     public void executeImpl() {
 
-        activateGoal(MoveGoal.class,x,y,z);
+        Mob ai=(net.minecraft.world.entity.Mob)entity;
+        ai.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof MoveGoal).findFirst().ifPresent(g->{
+            logger.info("activate blockitempickupgoal");
+            ((MoveGoal) g.getGoal()).setup(x,y,z);
+        });
     }
 }

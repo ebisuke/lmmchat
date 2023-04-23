@@ -1,18 +1,23 @@
 package jp.mochisuke.lmmchat.order;
 
-import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 
 import java.util.List;
 
 public class OwnerIdOrder extends AIOrderBase{
-    public OwnerIdOrder(Mob entity,VariablesContext context, List<Object> args) {
+    public OwnerIdOrder(LivingEntity entity, VariablesContext context, List<Object> args) {
         super(entity, context, args);
     }
 
     @Override
-    protected void startUp(Mob entity, VariablesContext context, List<Object> args) {
+    protected void startUp(LivingEntity entity, VariablesContext context, List<Object> args) {
 
+    }
+
+    @Override
+    protected boolean isImmediate() {
+       return true;
     }
 
     @Override
@@ -26,7 +31,7 @@ public class OwnerIdOrder extends AIOrderBase{
             val("y",animal.getOwner().blockPosition().getY());
             val("z",animal.getOwner().blockPosition().getZ());
         }else{
-            notifyAI("no owner");
+            throw new RuntimeException("No owner");
         }
     }
 }

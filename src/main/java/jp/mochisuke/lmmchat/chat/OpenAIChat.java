@@ -7,9 +7,10 @@ import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
 import com.theokanning.openai.service.OpenAiService;
 import jp.mochisuke.lmmchat.LMMChatConfig;
-import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.Entity;
 
 import java.net.SocketTimeoutException;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.Vector;
 
@@ -17,7 +18,7 @@ public class OpenAIChat implements IChatBase{
 
     OpenAiService service;
     public OpenAIChat(){
-        service = new OpenAiService(LMMChatConfig.getApiKey());
+        service = new OpenAiService(LMMChatConfig.getApiKey(), Duration.ofSeconds(LMMChatConfig.getApiTimeout()));
     }
     public Vector<ChatMessage> convertChatHistory(String callerId, ChatHistory chatHistory){
 
@@ -55,7 +56,7 @@ public class OpenAIChat implements IChatBase{
     public ChatData generateChatMessage(ChatGenerationRequest req,ChatHistory chatHistory) throws InterruptedException {
         for(int retry=0;retry<10;retry++) {
             try {        // generate preface
-                var chatMessages = this.convertChatHistory(String.valueOf(req.getCaller().getId()), chatHistory);
+                var chatMessages = this.convertChatHistory(String.valueOf(req.getCaller()!=null?req.getCaller().getId():-1), chatHistory);
                 //generate preface
 
                 ChatMessage prefacechat = new ChatMessage();
@@ -65,7 +66,7 @@ public class OpenAIChat implements IChatBase{
 
                 // add req
                 ChatMessage reqchat = new ChatMessage();
-                reqchat.setRole(ChatMessageRole.USER.value());
+                reqchat.setRole(req.getCaller()!=null?ChatMessageRole.USER.value():ChatMessageRole.SYSTEM.value());
                 reqchat.setContent(req.getCallerMessage());
                 chatMessages.add(reqchat);
                 // prepare REST request
@@ -78,20 +79,25 @@ public class OpenAIChat implements IChatBase{
                         .maxTokens(LMMChatConfig.getMaxTokens())
                         .stream(false)
                         .user("lmmchat")
+
                         .n(1)
                         .topP(1.0)
                         .build();
+                //change timeout okhttp3
+
+
+
 
                 var ret = service.createChatCompletion(request);
 
                 // add to chat history
-
+                Entity ent= req.getCaller() !=null? req.getCaller():req.getCallee();
                 OpenAIChatData chatData = new OpenAIChatData(
                         req.getCallerMessage(),
                         ret.getChoices().get(0).getMessage().getContent(),
 
                         //current minecraft timeofday
-                        Minecraft.getInstance().player.getLevel().getGameTime(),
+                        ent.getLevel().getGameTime(),
                         req.getCaller(),
                         req.getCallee(),
                         req.isCallerIsSystem(),

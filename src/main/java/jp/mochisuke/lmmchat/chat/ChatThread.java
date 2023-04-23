@@ -14,7 +14,7 @@ public class ChatThread {
     ConcurrentHashMap<String, ChatHistory> chatHistory;
 
     Queue<ChatGenerationRequest> chatGenerationRequestQueue;
-
+    boolean isEnabled = true;
     public ChatThread() {
         thread = new Thread(this::routine);
         chatContoller = new OpenAIChat();
@@ -23,7 +23,15 @@ public class ChatThread {
         chatHistory = new ConcurrentHashMap<>();
         start();
     }
-
+    public void disable(){
+        //clear all chat queue
+        chatDataQueue.clear();
+        chatGenerationRequestQueue.clear();
+        isEnabled=false;
+    }
+    public void enable(){
+        isEnabled=true;
+    }
     public void start() {
         thread.start();
     }
@@ -32,6 +40,10 @@ public class ChatThread {
 
         while (true) {
             try {
+                if(!isEnabled){
+                    Thread.sleep(1000);
+                    continue;
+                }
                 if (chatGenerationRequestQueue.size() > 0) {
                     ChatGenerationRequest chatData = chatGenerationRequestQueue.poll();
                     logger.info("chatData: " + chatData.getCallerMessage());

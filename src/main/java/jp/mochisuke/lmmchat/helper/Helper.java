@@ -3,6 +3,8 @@ package jp.mochisuke.lmmchat.helper;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class Helper {
     public static Container getInventoryContainer(Entity entity){
         //use reflection
@@ -15,6 +17,15 @@ public class Helper {
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
+            }
+        }
+        //check littlemaidmob inventory
+        if(entity.getClass().getName().contains("LittleMaidEntity")){
+            try {
+                var method=entity.getClass().getMethod("getInventory");
+                return (Container) method.invoke(entity);
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
             }
         }
         return null;

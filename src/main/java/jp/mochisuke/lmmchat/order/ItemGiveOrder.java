@@ -16,13 +16,13 @@ public class ItemGiveOrder extends AIOrderBase{
     private String itemname;
     private int targetid;
     private int itemcount;
-    public ItemGiveOrder(Mob entity,VariablesContext context, List<Object> args) {
+    public ItemGiveOrder(LivingEntity entity,VariablesContext context, List<Object> args) {
         super(entity, context, args);
 
     }
 
     @Override
-    protected void startUp(Mob entity, VariablesContext context, List<Object> args) {
+    protected void startUp(LivingEntity entity, VariablesContext context, List<Object> args) {
         this.itemname=(String)args.get(0);
         String targetid,itemcount;
         targetid= (String) args.get(1);
@@ -30,6 +30,11 @@ public class ItemGiveOrder extends AIOrderBase{
         this.targetid=val(targetid);
         this.itemcount=val(itemcount);
 
+    }
+
+    @Override
+    protected boolean isImmediate() {
+        return false;
     }
 
     @Override
@@ -48,15 +53,16 @@ public class ItemGiveOrder extends AIOrderBase{
         //finditem from db
         AtomicReference<ItemStack> stack=null;
 
-        ForgeRegistries.ITEMS.getValues().stream().filter(i->i.getDescriptionId().contains(itemname)).findFirst().ifPresent(i->{
+        ForgeRegistries.ITEMS.getValues().stream().filter(i->i.getDescriptionId().toLowerCase().contains(itemname)).findFirst().ifPresent(i->{
             stack.set(new ItemStack(i));
         });
 
         final ItemStack stack2=stack.get();
         //entity id to entity
         var target=(LivingEntity) entity.getLevel().getEntity(targetid);
-        this.entity.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof GiveItemGoal).findFirst().ifPresent(g->{
-            ((GiveItemGoal) g.getGoal()).activate(target,stack2,itemcount);
+        Mob mob=(Mob)entity;
+        mob.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof GiveItemGoal).findFirst().ifPresent(g->{
+            ((GiveItemGoal) g.getGoal()).setup(target,stack2,itemcount);
         });
     }
 }

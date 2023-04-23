@@ -2,6 +2,7 @@ package jp.mochisuke.lmmchat.order;
 
 import jp.mochisuke.lmmchat.goal.BlockItemPutGoal;
 import jp.mochisuke.lmmchat.helper.Helper;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
 
@@ -17,13 +18,13 @@ public class BlockItemPutOrder extends AIOrderBase{
     private String itemname;
     private int minslotindex;
     private int maxslotindex;
-    public BlockItemPutOrder(Mob entity,VariablesContext context, List<Object> args) {
+    public BlockItemPutOrder(LivingEntity entity, VariablesContext context, List<Object> args) {
         super(entity,context, args);
 
     }
 
     @Override
-    protected void startUp(Mob entity, VariablesContext context, List<Object> args) {
+    protected void startUp(LivingEntity entity, VariablesContext context, List<Object> args) {
         String x,y,z,minslotindex,maxslotindex;
         x= (String) args.get(0);
         y= (String) args.get(1);
@@ -36,6 +37,11 @@ public class BlockItemPutOrder extends AIOrderBase{
         this.itemname=(String)args.get(3);
         this.minslotindex=val(minslotindex);
         this.maxslotindex=val(maxslotindex);
+    }
+
+    @Override
+    protected boolean isImmediate() {
+        return false;
     }
 
     @Override
@@ -57,14 +63,20 @@ public class BlockItemPutOrder extends AIOrderBase{
         ItemStack stack=null;
         for(int i=0;i<container.getContainerSize();i++){
             var item=container.getItem(i);
-            if(item.getHoverName().getString().contains(itemname)){
+            logger.info("item:"+item.getDescriptionId());
+            if(item.getDescriptionId().contains(itemname)){
                 stack=item;
                 break;
             }
         }
+        if(stack==null){
+            throw new RuntimeException("No item found");
+        }
         final ItemStack stack2=stack;
-        this.entity.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof BlockItemPutGoal).findFirst().ifPresent(g->{
-            ((BlockItemPutGoal) g.getGoal()).activate(x,y,z,stack2,minslotindex,maxslotindex);
-        });
+        Mob mob=(Mob)entity;
+
+        var m=mob.goalSelector. getAvailableGoals().stream().filter(g->g.getGoal() instanceof BlockItemPutGoal).findFirst();
+        var goal=(BlockItemPutGoal) m.get().getGoal();
+        goal.setup(x,y,z,stack2,minslotindex,maxslotindex);
     }
 }

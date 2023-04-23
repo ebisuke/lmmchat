@@ -207,6 +207,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     jarJar("org.jetbrains.kotlin:kotlin-stdlib:[1.5.31,)")
 
+    //exp4j
+    implementation("net.objecthunter:exp4j:0.4.8")
+    jarJar("net.objecthunter:exp4j:[0.4.8,)")
     //okio
     implementation("com.squareup.okio:okio:2.10.0")
     jarJar("com.squareup.okio:okio:[2.10.0,)")

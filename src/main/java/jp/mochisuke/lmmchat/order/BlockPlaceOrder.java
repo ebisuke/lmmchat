@@ -1,6 +1,7 @@
 package jp.mochisuke.lmmchat.order;
 
 import jp.mochisuke.lmmchat.goal.BlockPlaceGoal;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -14,13 +15,13 @@ public class BlockPlaceOrder extends AIOrderBase{
     int y;
     int z;
     String itemname;
-    public BlockPlaceOrder(Mob entity,VariablesContext context, List<Object> args) {
+    public BlockPlaceOrder(LivingEntity entity, VariablesContext context, List<Object> args) {
         super(entity,context, args);
 
     }
 
     @Override
-    protected void startUp(Mob entity, VariablesContext context, List<Object> args) {
+    protected void startUp(LivingEntity entity, VariablesContext context, List<Object> args) {
         String x,y,z;
         x= (String) args.get(0);
         y= (String) args.get(1);
@@ -32,14 +33,24 @@ public class BlockPlaceOrder extends AIOrderBase{
     }
 
     @Override
+    protected boolean isImmediate() {
+        return false;
+    }
+
+    @Override
     public void executeImpl() {
         AtomicReference<ItemStack> stack=null;
-        ForgeRegistries.ITEMS.getValues().stream().filter(i->i.getDescriptionId().contains(itemname)).findFirst().ifPresent(i->{
+        ForgeRegistries.ITEMS.getValues().stream().filter(i->i.getName(ItemStack.EMPTY).getString().toLowerCase().
+                contains(itemname)).findFirst().ifPresent(i->{
             stack.set(new ItemStack(i));
         });
 
         final ItemStack stack2=stack.get();
-        activateGoal(BlockPlaceGoal.class,x,y,z,stack2);
+        Mob ai=(Mob)entity;
+        ai.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof BlockPlaceGoal).findFirst().ifPresent(g->{
+            logger.info("activate blockitempickupgoal");
+            ((BlockPlaceGoal) g.getGoal()).setup(x,y,z,stack2);
+        });
     }
 
 }

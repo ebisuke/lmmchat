@@ -1,14 +1,22 @@
 package jp.mochisuke.lmmchat.goal;
 
+import com.mojang.logging.LogUtils;
+import jp.mochisuke.lmmchat.LMMChat;
+import jp.mochisuke.lmmchat.LMMChatConfig;
+import jp.mochisuke.lmmchat.chat.ChatGenerationRequest;
+import jp.mochisuke.lmmchat.chat.ChatPreface;
 import jp.mochisuke.lmmchat.order.AIOrderBase;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
+import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class AIOperationGoal  <T extends Mob>  extends Goal implements CallbackedGoal.Callback {
+public class AIOperationGoal  <T extends Mob>  extends Goal implements AIUnitGoalBase.Callback {
+    static final Logger logger= LogUtils.getLogger();
     protected final T entity;
     private Queue<AIOrderBase> orders;
     private AIOrderBase currentOrder=null;
@@ -17,8 +25,15 @@ public class AIOperationGoal  <T extends Mob>  extends Goal implements Callbacke
         orders=new ConcurrentLinkedQueue<>();
 
     }
+
+    @Override
+    public boolean requiresUpdateEveryTick() {
+        return true;
+    }
+
     public void activate(List<AIOrderBase> orders){
-        this.orders.addAll(orders);
+        for(var order:orders)
+            activate(order);
 
     }
     public void activate(AIOrderBase order){
@@ -26,8 +41,13 @@ public class AIOperationGoal  <T extends Mob>  extends Goal implements Callbacke
 
     }
     @Override
+    public void stop(){
+        orders.clear();
+        currentOrder=null;
+    }
+    @Override
     public boolean canUse() {
-        return !orders.isEmpty() && currentOrder==null;
+        return orders.size()>0 || currentOrder!=null;
     }
 
     @Override
@@ -47,7 +67,14 @@ public class AIOperationGoal  <T extends Mob>  extends Goal implements Callbacke
         var cur=currentOrder;
         currentOrder=null;
         cur.onFailed(reason);
-
+        //dispose all orders
+        orders.clear();
+        //notify ai
+        logger.info("AIOperationGoal.onFailed:"+reason);
+        ChatPreface preface = new ChatPreface(LMMChatConfig.getPreface());
+        var req=new ChatGenerationRequest(null,entity,true,false,reason,
+                Minecraft.getInstance().player.getLevel().getGameTime(),0, preface);
+        LMMChat.chatThread.PushRequest(req);
     }
 
     @Override
@@ -56,7 +83,14 @@ public class AIOperationGoal  <T extends Mob>  extends Goal implements Callbacke
         if(currentOrder==null){
             currentOrder=orders.poll();
             if(currentOrder!=null){
-                currentOrder.execute();
+                try {
+                    if (currentOrder.execute()) {
+                        //success
+                        onSuccess();
+                    }
+                }catch (Exception e){
+                    onFailed(e.getMessage());
+                }
             }
         }
     }

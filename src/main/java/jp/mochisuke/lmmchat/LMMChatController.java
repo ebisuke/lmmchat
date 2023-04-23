@@ -5,11 +5,13 @@ import jp.mochisuke.lmmchat.goal.AIOperationGoal;
 import jp.mochisuke.lmmchat.order.AIOrderBase;
 import jp.mochisuke.lmmchat.order.AIOrderParser;
 import jp.mochisuke.lmmchat.order.VariablesContext;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -27,10 +29,24 @@ public class LMMChatController {
 
     @SubscribeEvent
     public static void onTick(net.minecraftforge.event.TickEvent.ServerTickEvent event){
+        if(event.side.isClient()){
+            return;
+        }
         // server only
         if(event.phase==net.minecraftforge.event.TickEvent.Phase.START){
             return;
         }
+        //no login user?
+        if(event.getServer().getPlayerCount()==0){
+            //delete all chat queue
+            LMMChat.chatThread.disable();
+            return;
+        }else{
+            //enable chat queue
+            LMMChat.chatThread.enable();
+        }
+
+
         while(true){
             var chatData=LMMChat.chatThread.PopChatData();
             if(chatData==null){
@@ -48,8 +64,10 @@ public class LMMChatController {
             if(calleeMessage.startsWith("@")){
                 forceOwner=true;
             }
+            // ---------- SHOW CHAT ---------
             if(!chatData.isCalleeIsSystem()) {
-                logger.info("TALK:" + caller.getName().getString() + ":" + chatData.getCallerMessage() + ":" + callee.getName().getString() + ":" + chatData.getCalleeMessage());
+
+                //logger.info("TALK:" + caller.getName().getString() + ":" + chatData.getCallerMessage() + ":" + callee.getName().getString() + ":" + chatData.getCalleeMessage());
                 if(forceOwner){
                     logger.info("TALK:force owner");
                     var tamable=(Tameable)callee;
@@ -68,6 +86,7 @@ public class LMMChatController {
                 }
 
             }
+            //------- ORDER -------
             List<AIOrderBase> orders;
             try {
                 //get context
@@ -79,8 +98,16 @@ public class LMMChatController {
                     contextMap.put(callee.getId(),context);
                 }
 
+                //remove existing order
+                if(callee instanceof Mob){
+                    var calleemob=(Mob)callee;
+                    var ai=calleemob.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof AIOperationGoal).findFirst();
+                    if(ai.isPresent()){
+                        ai.get().getGoal().stop();
+                    }
+                }
 
-                orders = AIOrderParser.parse((Mob) callee,context, calleeMessage);
+                orders = AIOrderParser.parse((LivingEntity) callee,context, calleeMessage);
             }catch (Exception e){
                 logger.error("parse error",e);
                 //notify
@@ -88,21 +115,32 @@ public class LMMChatController {
                         "parse error.maybe contains invalid order.", chatData.getConversationCount());
                 continue;
             }
-            //execute
+            // --- EXECUTE GOAL --
             if(!orders.isEmpty()){
                 Mob calleemob=(Mob)callee;
-                var ai=((Mob) callee).goalSelector.getAvailableGoals().stream().
-                        filter(goal -> goal.getClass().toString().contains("AIOperationGoal")).findFirst();
-                if(ai.isPresent()){
-                    var aiop=(AIOperationGoal)ai.get().getGoal();
+                var ai=calleemob.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof AIOperationGoal).findFirst();
+                var aiop=(AIOperationGoal)ai.get().getGoal();
+
+                //check running thread
+                if(Minecraft.getInstance().isSameThread()) {
                     aiop.activate(orders);
+                }else{
+                    //is same to level thread?
+                    Level level=callee.getCommandSenderWorld();
+
+                    Minecraft.getInstance().execute(()->{
+                        aiop.activate(orders);
+                    });
                 }
+
                 return;
             }
 
+            // --- CONVERSATION ---
             //caller is lmm?
             if(!forceOwner){
-                if (caller.getClass().toString().contains("LittleMaidEntity") && callee.getClass().toString().contains("LittleMaidEntity") &&
+
+                if (caller!=null && callee!=null && caller.getClass().toString().contains("LittleMaidEntity") && callee.getClass().toString().contains("LittleMaidEntity") &&
                         chatData.getConversationCount() < LMMChatConfig.getConversationLimitForLmms()) {
                     //conversation
                     LMMChat.addChatMessage(callee, caller,chatData.isCalleeIsSystem(),chatData.isCallerIsSystem(),

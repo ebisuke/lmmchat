@@ -1,6 +1,7 @@
 package jp.mochisuke.lmmchat.order;
 
 import jp.mochisuke.lmmchat.goal.BlockItemPickupGoal;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -18,13 +19,13 @@ public class BlockItemPickupOrder extends AIOrderBase{
     private String itemname;
     private int minslotindex;
     private int maxslotindex;
-    public BlockItemPickupOrder(Mob entity,VariablesContext context, List<Object> args) {
+    public BlockItemPickupOrder(LivingEntity entity, VariablesContext context, List<Object> args) {
         super(entity, context, args);
 
     }
 
     @Override
-    protected void startUp(Mob entity, VariablesContext context, List<Object> args) {
+    protected void startUp(LivingEntity entity, VariablesContext context, List<Object> args) {
         String x,y,z,minslotindex,maxslotindex;
         x= (String) args.get(0);
         y= (String) args.get(1);
@@ -41,6 +42,11 @@ public class BlockItemPickupOrder extends AIOrderBase{
     }
 
     @Override
+    protected boolean isImmediate() {
+        return false;
+    }
+
+    @Override
     public void onSuccess() {
         notifyAI("Item picked ");
     }
@@ -54,16 +60,18 @@ public class BlockItemPickupOrder extends AIOrderBase{
     public void executeImpl() {
 
         //finditem from db
-        AtomicReference<ItemStack> stack=null;
+        AtomicReference<ItemStack> stack=new AtomicReference<>();
 
-        ForgeRegistries.ITEMS.getValues().stream().filter(i->i.getDescriptionId().contains(itemname)).findFirst().ifPresent(i->{
+        ForgeRegistries.ITEMS.getValues().stream().filter(i->i.getName(ItemStack.EMPTY).getString().toLowerCase()
+                .contains(itemname)).findFirst().ifPresent(i->{
             stack.set(new ItemStack(i));
         });
 
         final ItemStack stack2=stack.get();
-
-        this.entity.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof BlockItemPickupGoal).findFirst().ifPresent(g->{
-            ((BlockItemPickupGoal) g.getGoal()).activate(x,y,z,stack2,minslotindex,maxslotindex);
+        Mob mob=(Mob)entity;
+        mob.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof BlockItemPickupGoal).findFirst().ifPresent(g->{
+            logger.info("activate blockitempickupgoal");
+            ((BlockItemPickupGoal) g.getGoal()).setup(x,y,z,stack2,minslotindex,maxslotindex);
         });
     }
 }

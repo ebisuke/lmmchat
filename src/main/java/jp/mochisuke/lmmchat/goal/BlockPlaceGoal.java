@@ -6,11 +6,13 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 
-public class BlockPlaceGoal<T extends Mob> extends CallbackedGoal{
+import java.util.EnumSet;
+
+public class BlockPlaceGoal<T extends Mob> extends AIUnitGoalBase {
     protected final T entity;
-    protected double x;
-    protected double y;
-    protected double z;
+    protected int x;
+    protected int y;
+    protected int z;
     protected ItemStack blockItem;
     public BlockPlaceGoal(T entity) {
         this.entity = entity;
@@ -23,24 +25,32 @@ public class BlockPlaceGoal<T extends Mob> extends CallbackedGoal{
         fail("interrupted");
     }
 
-    public void activate(double x,double y,double z,ItemStack block) {
-        super.activate();
+    public void setup(int  x,int y,int z,ItemStack block) {
+
         this.x=x;
         this.y=y;
         this.z=z;
         this.blockItem=block;
+        super.activate();
     }
 
+    @Override
+    public EnumSet<Flag> getFlags() {
+        return EnumSet.of(Flag.TARGET,Flag.MOVE);
+    }
 
     @Override
     public void tick() {
+        if(!canUse()) {
+            return;
+        }
         //move per 100 ticks
-        if(entity.tickCount%100==0){
-            entity.getNavigation().moveTo(x,y,z,1.0);
+        if(entity.tickCount%60==1){
+            entity.getNavigation().moveTo(x,y,z,0.5);
         }
 
         //if arrived
-        if(entity.distanceToSqr(x,y,z)<1.0){
+        if(entity.distanceToSqr(x,y,z)<5.0){
             //place block
             BlockItem blockItem = (BlockItem) this.blockItem.getItem();
             entity.level.setBlockAndUpdate(entity.blockPosition().offset(x,y,z),blockItem.getBlock().defaultBlockState());

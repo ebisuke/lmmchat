@@ -21,6 +21,7 @@ public class LMMChatConfig  {
         return config.get("neutralpreface");
     }
 
+    
 
     public static int getMaxTokens(){
         return config.get("maxtokens");
@@ -28,13 +29,13 @@ public class LMMChatConfig  {
     public static int getConversationLimitForLmms(){
         return config.get("conversationlimitforlmms");
     }
-    public static float getRandomTalkChance(){
+    public static double getRandomTalkChance(){
         return config.get("randomtalkchance");
     }
-    public static float getNeutralRandomTalkChance(){
+    public static double getNeutralRandomTalkChance(){
         return config.get("neutralrandomtalkchance");
     }
-    public static long getRandomTalkCooldown(){
+    public static int  getRandomTalkCooldown(){
         return config.get("randomtalkcooldown");
     }
     public static String getRandomTalkPrompt(){
@@ -42,6 +43,9 @@ public class LMMChatConfig  {
     }
     public static int getLimitOfResponsePerOneChat(){
         return config.get("limitofresponseperonechat");
+    }
+    public static int getApiTimeout(){
+        return config.get("apitimeout");
     }
 
     public static void loadConfig(){
@@ -61,6 +65,7 @@ public class LMMChatConfig  {
 !end: コマンド会話の終了を表し、変数を初期化します。
 !pick x,y,z,itemname,minslotindex,maxslotindex: あなたは指定された座標のブロックにあるアイテムを拾います。拾うスロット番号の範囲を指定できます。slotindexは両方-1を指定すると、全てを選択できます。
 !put x,y,z,itemname,minslotindex,maxslotindex: あなたは指定された座標のブロックにアイテムを置きます。置くスロット番号の範囲を指定できます。slotindexは両方-1を指定すると、全てを選択できます。
+!inspect x,y,z: 指定した位置のブロックの中身を調べます。
 !take id,itemname,count: あなたは指定された名前のエンティティからアイテムを取ります。取るアイテムの数を指定できます。
 !give id,itemname,count: あなたは指定された名前のエンティティにアイテムを渡します。渡すアイテムの数を指定できます。
 !move x,y,z: 指定された座標に移動します。
@@ -77,6 +82,7 @@ public class LMMChatConfig  {
 
         // set default values
         if (!config.contains("apikey")) config.add("apikey", "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        if (!config.contains("apitimeout")) config.add("apitimeout", 30000);
         if (!config.contains("modelname")) config.add("modelname", "gpt-4");
         if (!config.contains("preface")) config.add("preface", default_prompt);
         if (!config.contains("neutralpreface")) config.add("neutralpreface", default_neutral_prompt);
@@ -84,8 +90,8 @@ public class LMMChatConfig  {
         if (!config.contains("conversationlimitforlmms")) config.add("conversationlimitforlmms", 10);
 
 
-        if (!config.contains("randomtalkchance")) config.add("randomtalkchance", 0.005f);
-        if (!config.contains("neutralrandomtalkchance")) config.add("neutralrandomtalkchance", 0.0025f);
+        if (!config.contains("randomtalkchance")) config.add("randomtalkchance", 0.0005);
+        if (!config.contains("neutralrandomtalkchance")) config.add("neutralrandomtalkchance", 0.00025);
         if (!config.contains("randomtalkcooldown")) config.add("randomtalkcooldown", 30000L);
 
         if (!config.contains("limitofresponseperonechat")) config.add("limitofresponseperonechat", 3);

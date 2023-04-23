@@ -29,7 +29,7 @@ public class StatusNotificationGoal<T extends TamableAnimal> extends Goal {
     @Override
     public void tick() {
         //per 12000 ticks
-        if(entity.tickCount%12000==0) {
+        if(entity.tickCount%12000==1) {
             if (entity.isTame()) {
                 float hp = entity.getHealth();
                 float maxHp = entity.getMaxHealth();
@@ -42,11 +42,16 @@ public class StatusNotificationGoal<T extends TamableAnimal> extends Goal {
                 //biome
                 var biome = entity.level.getBiome(entity.blockPosition());
                 ForgeRegistry<Biome> biomeRegistry = (ForgeRegistry<Biome>) ForgeRegistries.BIOMES;
-
-                String biomeName = biomeRegistry.getResourceKey(biome.get()).get().location().toString();
+                String biomeName;
+                if(biomeRegistry.getResourceKey(biome.get()).isEmpty()){
+                    biomeName = "-";
+                }else{
+                    biomeName = biomeRegistry.getResourceKey(biome.get()).get().toString();
+                }
                 //nearby enemy
                 int enemies = entity.level.getEntitiesOfClass(Monster.class, entity.getBoundingBox().inflate(20)).size();
                 //owner hp/maxhp
+                if(entity.getOwner()==null) return;
                 float ownerHp = entity.getOwner().getHealth();
                 float ownerMaxHp = entity.getOwner().getMaxHealth();
 

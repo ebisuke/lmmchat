@@ -9,50 +9,56 @@ import jp.mochisuke.lmmchat.chat.ChatGenerationRequest;
 import jp.mochisuke.lmmchat.chat.ChatPreface;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import org.slf4j.Logger;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
 
 public abstract class AIOrderBase implements ChatGenerationCallback {
     public static final Logger logger= LogUtils.getLogger();
-    protected final Mob entity;
+    protected final LivingEntity entity;
     protected final VariablesContext context;
     protected List<Object> args;
-    public AIOrderBase(Mob entity,VariablesContext context, List<Object> args) {
+    protected boolean isIntermediate=false;
+    public AIOrderBase(LivingEntity entity,VariablesContext context, List<Object> args) {
         this.entity = entity;
         this.context = context;
         this.args = args;
     }
-    protected abstract void startUp(Mob entity,VariablesContext context, List<Object> args);
+    protected abstract void startUp(LivingEntity entity,VariablesContext context, List<Object> args);
+    protected abstract boolean isImmediate();
+
+    public void setIntermediate(boolean intermediate) {
+        isIntermediate=intermediate;
+    }
+
     protected int val(String o){
         //name is number?
-        if (o.matches("(|-)[0-9]+")) {
-            //return number
-            return Integer.parseInt(o);
-        } else
-        if (context.variables.containsKey(o)) {
-            return (int) context.variables.get(o);
-        } else {
-            throw new RuntimeException("variable not found:"+o);
+        var ret=context.eval(o);
+        //unbox
+        if(ret instanceof Double){
+            return ((Double)ret).intValue();
+        }else if(ret instanceof Integer){
+            return (Integer)ret;
         }
+
+        throw new IllegalArgumentException("not number:"+o);
+
+
     }
-    protected void val(String o,int value){
-        //name is number?
-        if (o.matches("(|-)[0-9]+")) {
-            //return number
-            throw new RuntimeException("variable name is number:"+o);
-    }
-        context.variables.put(o,value);
+    protected void val(String o,double value){
+        context.setVar(o,(double)value);
     }
     public interface Generator{
-        AIOrderBase generate(Mob entity,VariablesContext context, List<Object> args);
+        AIOrderBase generate(LivingEntity entity,VariablesContext context, List<Object> args);
     }
-    public void execute(){
+    public boolean execute(){
         startUp(entity,context,args);
         executeImpl();
+        if(isImmediate()) {
+            return true;
+        }else{
+            return false;
+        }
     }
     protected abstract void executeImpl();
 
@@ -65,6 +71,11 @@ public abstract class AIOrderBase implements ChatGenerationCallback {
     }
 
     public void notifyAI(String message){
+        logger.info("AIOrderBase.notifyAI:"+message);
+        if(isIntermediate){
+            logger.debug("AIOrderBase.notifyAI:intermediate order. skip notifyAI");
+            return;
+        }
         ChatPreface preface = new ChatPreface(LMMChatConfig.getPreface());
         var req=new ChatGenerationRequest(null,entity,true,false,message,
                 Minecraft.getInstance().player.getLevel().getGameTime(),0, preface);
@@ -92,22 +103,4 @@ public abstract class AIOrderBase implements ChatGenerationCallback {
 
     }
 
-    public void activateGoal(Class type, Object ... args)
-    {
-        this.entity.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal().getClass()==type).findFirst().ifPresent(g->{
-            Method m = null;
-            try {
-                m = type.getMethod("activate");
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
-            try {
-                m.invoke(g.getGoal(),args);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            } catch (InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
 }

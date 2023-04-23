@@ -2,7 +2,9 @@ package jp.mochisuke.lmmchat.goal;
 
 import net.minecraft.world.entity.Mob;
 
-public class MoveGoal<T extends Mob> extends CallbackedGoal{
+import java.util.EnumSet;
+
+public class MoveGoal<T extends Mob> extends AIUnitGoalBase {
     protected final T entity;
     protected double x;
     protected double y;
@@ -17,19 +19,27 @@ public class MoveGoal<T extends Mob> extends CallbackedGoal{
         entity.getNavigation().stop();
         fail("interrupted");
     }
+    @Override
+    public EnumSet<Flag> getFlags() {
+        return EnumSet.of(Flag.MOVE);
+    }
 
-    public void activate(double x,double y,double z) {
-        super.activate();
+    public void setup(double x,double y,double z) {
+
         this.x=x;
         this.y=y;
         this.z=z;
+        super.activate();
     }
 
 
     @Override
     public void tick() {
+        if(!canUse()) {
+            return;
+        }
         //move per 100 ticks
-        if(entity.tickCount%100==0){
+        if(entity.tickCount%60==1){
             entity.getNavigation().moveTo(x,y,z,1.0);
         }
 

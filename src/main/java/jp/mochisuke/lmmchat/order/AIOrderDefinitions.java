@@ -1,6 +1,6 @@
 package jp.mochisuke.lmmchat.order;
 
-import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +13,7 @@ public class AIOrderDefinitions {
         orders.put(name, order);
     }
 
-    public static AIOrderBase createOrder(Mob mob, String orderName,VariablesContext context, List<Object> args){
+    public static AIOrderBase createOrder(LivingEntity mob, String orderName, VariablesContext context, List<Object> args){
         //get constructor
         var gen = orders.get(orderName).generate(mob,context,args);
         //generate
@@ -35,6 +35,7 @@ public class AIOrderDefinitions {
         register("put", BlockItemPutOrder::new);
         register("pick", BlockItemPickupOrder::new);
         register("pos", PositionOrder::new);
+        register("inspect", BlockInspectOrder::new);
 
 
     }

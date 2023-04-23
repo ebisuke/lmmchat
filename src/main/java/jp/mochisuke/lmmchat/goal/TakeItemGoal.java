@@ -7,8 +7,9 @@ import net.minecraft.world.item.ItemStack;
 import net.sistr.littlemaidrebirth.entity.util.HasInventory;
 
 import java.lang.reflect.Field;
+import java.util.EnumSet;
 
-public class TakeItemGoal  <T extends PathfinderMob & HasInventory>  extends CallbackedGoal {
+public class TakeItemGoal  <T extends PathfinderMob & HasInventory>  extends AIUnitGoalBase {
     protected final T entity;
 
     private LivingEntity targetEntity;
@@ -18,12 +19,17 @@ public class TakeItemGoal  <T extends PathfinderMob & HasInventory>  extends Cal
     public TakeItemGoal(T entity) {
         this.entity = entity;
     }
+    @Override
+    public EnumSet<Flag> getFlags() {
+        return EnumSet.of(Flag.TARGET,Flag.MOVE);
+    }
 
-    public void activate(LivingEntity targetEntity, ItemStack giveItemStack,int itemCount){
-        super.activate();
+    public void setup(LivingEntity targetEntity, ItemStack giveItemStack,int itemCount){
+
         this.targetEntity=targetEntity;
         this.giveItemStack=giveItemStack;
         this.itemCount=itemCount;
+        super.activate();
     }
 
     @Override
@@ -39,7 +45,9 @@ public class TakeItemGoal  <T extends PathfinderMob & HasInventory>  extends Cal
     @Override
     public void start() {
         //follow to target
-        this.entity.moveTo(this.targetEntity.getX(),this.targetEntity.getY(),this.targetEntity.getZ());
+        if(this.targetEntity==null || this.giveItemStack==null || this.itemCount<=0){
+            return;
+        }
 
     }
 
@@ -56,12 +64,15 @@ public class TakeItemGoal  <T extends PathfinderMob & HasInventory>  extends Cal
 
     @Override
     public void tick() {
+        if(!canUse()) {
+            return;
+        }
         //follow to target per 60 ticks
-        if(this.entity.tickCount%60==0){
-            this.entity.moveTo(this.targetEntity.getX(),this.targetEntity.getY(),this.targetEntity.getZ());
+        if(this.entity.tickCount%60==1){
+            this.entity.getNavigation().moveTo(this.targetEntity.getX(),this.targetEntity.getY(),this.targetEntity.getZ(),0.5);
         }
         // is target near?
-        if(this.entity.distanceTo(this.targetEntity)<1.5){
+        if(this.entity.distanceTo(this.targetEntity)<5){
             //give item
 
             //get inventory using java reflection
