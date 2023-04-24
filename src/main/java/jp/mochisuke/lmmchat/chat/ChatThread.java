@@ -56,8 +56,26 @@ public class ChatThread {
                         history = new ChatHistory();
                         chatHistory.put(String.valueOf(chatData.getCallee().getId()), history);
                     }
+                    //if callee is died, clear history
+                    if (chatData.getCallee()==null && chatData.getCallee().isDeadOrDying()) {
+                        history.chatDataList.clear();
+                        //remove from history if exist
+                        chatHistory.remove(String.valueOf(chatData.getCallee().getId()));
+                        continue;
+
+                    }
                     try {
                         var ret = chatContoller.generateChatMessage(chatData, history);
+                        if (chatData.getCallee()==null && chatData.getCallee().isDeadOrDying()) {
+                            //remove from history if exist
+                            history.chatDataList.clear();
+                            chatHistory.remove(String.valueOf(chatData.getCallee().getId()));
+                            continue;
+                        }
+                        if(ret==null){
+                           //retry
+                            PushRequest(chatData);
+                        }
                         //send message to minecraft
                         chatDataQueue.add(ret);
                     } catch (TooLongConversationException e) {
@@ -66,6 +84,7 @@ public class ChatThread {
                         history.chatDataList.subList(0, history.chatDataList.size() / 2).clear();
                         //retry
                         chatGenerationRequestQueue.add(chatData);
+
                         Thread.sleep(1000);
                         continue;
                     }

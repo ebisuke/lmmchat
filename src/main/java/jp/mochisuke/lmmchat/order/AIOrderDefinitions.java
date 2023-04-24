@@ -43,6 +43,9 @@ public class AIOrderDefinitions {
         register("swap", SwapHandOrder::new);
         register("check", CheckItemOrder::new);
         register("wield", WieldOrder::new);
+        register("interact", InteractOrder::new);
+        register("fortify", FortifyOrder::new);
+        register("craft", CraftingOrder::new);
 
 
     }

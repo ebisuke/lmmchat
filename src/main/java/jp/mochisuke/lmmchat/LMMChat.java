@@ -127,6 +127,13 @@ public class LMMChat {
     public static long getServerTime(){
         return server.getLevel(net.minecraft.world.level.Level.OVERWORLD).getGameTime();
     }
+    public static long getElapsedDays(){
+        var day= (getServerTime())/24000;
+        return day;
+    }
+    public static long getDayTime(){
+        return getServerTime()%24000;
+    }
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {

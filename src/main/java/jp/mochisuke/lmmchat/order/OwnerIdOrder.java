@@ -24,7 +24,8 @@ public class OwnerIdOrder extends AIOrderBase{
     public void executeImpl() {
         TamableAnimal animal=(TamableAnimal)entity;
         if(animal.getOwner()!=null) {
-            notifyAI("owner id:" + animal.getOwner().getId()+" location:"+animal.getOwner().blockPosition());
+            notifyAI("owner id:" + animal.getOwner().getId()+" location:"+
+                    animal.getOwner().blockPosition().getX()+","+animal.getOwner().blockPosition().getY()+","+animal.getOwner().blockPosition().getZ());
             //store
             val("id",animal.getOwner().getId());
             val("x",animal.getOwner().blockPosition().getX());

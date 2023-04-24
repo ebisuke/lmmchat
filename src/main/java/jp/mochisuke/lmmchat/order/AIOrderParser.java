@@ -12,16 +12,18 @@ public class AIOrderParser {
 
     public static String parsedRemnant(String orders){
         //remove ! lines
-        //after ! will remove
-        var lines=orders.split("[\n|\\n]");
         StringBuilder sb=new StringBuilder();
-        for(var line:lines){
-            if(line.contains("!")){
-                sb.append(line.substring(0,line.indexOf("!")));
-            }else{
-                sb.append(line);
+        //period and japanese period recognizes as newline
+
+        orders=orders.replaceAll("。", "。\n");
+
+
+        String[] ordertext = orders.split("[\n|\\n]");
+        for(String orderLine : ordertext) {
+            if(!orderLine.startsWith("!")){
+                sb.append(orderLine);
+                sb.append("\n");
             }
-            sb.append("\n");
         }
         return sb.toString();
     }
@@ -29,6 +31,10 @@ public class AIOrderParser {
         //format
         //order_name arg1,arg2,arg3...
         Vector<AIOrderBase> parsed = new Vector<>();
+        //period and japanese period recognizes as newline
+
+        orders=orders.replaceAll("。", "。\n");
+
         //split by newline
         String[] ordertext = orders.split("[\n|\\n]");
 
@@ -42,6 +48,10 @@ public class AIOrderParser {
 
             //remove before !
             orderLine = orderLine.substring(orderLine.indexOf("!")+1);
+
+            //remove after japanese character
+            orderLine = orderLine.replaceAll("[^\\x00-\\x7F]*", "");
+
             //remove {}
             orderLine = orderLine.replaceAll("[{|}]", "");
             //remove ""

@@ -71,9 +71,18 @@ public class StatusNotificationGoal<T extends TamableAnimal> extends Goal {
                     }
                 }
 
+                String statusEffect="";
+                for(var effect:entity.getActiveEffects()){
+                    statusEffect+=effect.getEffect().getDescriptionId()+":"+effect.getAmplifier()+",";
+                }
+                if(statusEffect.length()>0){
+                    statusEffect="effects:"+statusEffect.substring(0,statusEffect.length()-1);
 
-                String message = String.format("your hp:%.0f/%.0f,owner hp:%.0f/%.0f,distance %.0f,location %.1f,%.1f,%.1f,biome:%s,nearby enemies:%d,sugar salary:%d",
-                        hp, maxHp, ownerHp, ownerMaxHp, distance, x, y, z, biomeName, enemies,sugarcount);
+                }
+                String message = "Status Notification: \n";
+                message += String.format("Now is %s. your hp:%.0f/%.0f,owner hp:%.0f/%.0f,distance %.0f,location %.1f,%.1f,%.1f," +
+                                "nearby enemies:%d,sugar salary:%d "+statusEffect,
+                        Helper.getDateAsTimeFormat(),hp, maxHp, ownerHp, ownerMaxHp, distance, x, y, z,  enemies,sugarcount);
 
                 LMMChat.addChatMessage(null, entity, true, false, message, 0);
 

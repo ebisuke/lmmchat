@@ -43,7 +43,7 @@ public class MoveGoal<T extends Mob> extends AIGoalBase {
         }
 
         //if arrived
-        if(entity.distanceToSqr(x,y,z)<1.0){
+        if(entity.getNavigation().isDone()){
             success();
         }
     }

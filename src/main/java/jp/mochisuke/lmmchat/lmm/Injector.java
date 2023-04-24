@@ -28,6 +28,9 @@ public class Injector {
             goals.add(new jp.mochisuke.lmmchat.goal.TakeItemGoal<LittleMaidEntity>(entity));
             goals.add(new jp.mochisuke.lmmchat.goal.BlockPlaceGoal<LittleMaidEntity>(entity));
             goals.add(new jp.mochisuke.lmmchat.goal.BlockInspectGoal<LittleMaidEntity>(entity));
+            goals.add(new jp.mochisuke.lmmchat.goal.InteractGoal<LittleMaidEntity>(entity));
+            goals.add(new jp.mochisuke.lmmchat.goal.FortifyGoal<LittleMaidEntity>(entity));
+            goals.add(new jp.mochisuke.lmmchat.goal.CraftingGoal<LittleMaidEntity>(entity));
 
             var operator=new jp.mochisuke.lmmchat.goal.AIOperationGoal<LittleMaidEntity>(entity);
             entity.goalSelector.addGoal(0,operator);
@@ -38,8 +41,8 @@ public class Injector {
             }
             entity.goalSelector.addGoal(8,new jp.mochisuke.lmmchat.goal.RandomTalkGoal<LittleMaidEntity>(entity));
             entity.goalSelector.addGoal(1,new jp.mochisuke.lmmchat.goal.StatusNotificationGoal<LittleMaidEntity>(entity));
-            entity.goalSelector.addGoal(3,new jp.mochisuke.lmmchat.goal.HurtNotificationGoal<LittleMaidEntity>(entity));
-
+            //entity.goalSelector.addGoal(3,new jp.mochisuke.lmmchat.goal.HurtNotificationGoal<LittleMaidEntity>(entity));
+            entity.goalSelector.addGoal(3,new jp.mochisuke.lmmchat.goal.EventNotificationGoal<LittleMaidEntity>(entity));
         }
     }
 }
