@@ -93,47 +93,49 @@ public class LMMChatController {
             }
             //------- ORDER -------
             List<AIOrderBase> orders;
-            try {
-                //get context
-                VariablesContext context;
-                if(contextMap.containsKey(callee.getId())) {
-                    context = contextMap.get(callee.getId());
-                }else{
-                    context=new VariablesContext();
-                    contextMap.put(callee.getId(),context);
-                }
-
-                //remove existing order
-                if(callee instanceof Mob){
-                    var calleemob=(Mob)callee;
-                    var ai=calleemob.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof AIOperationGoal).findFirst();
-                    if(ai.isPresent()){
-                        ai.get().getGoal().stop();
+            if(callee instanceof TamableAnimal) {
+                try {
+                    //get context
+                    VariablesContext context;
+                    if (contextMap.containsKey(callee.getId())) {
+                        context = contextMap.get(callee.getId());
+                    } else {
+                        context = new VariablesContext();
+                        contextMap.put(callee.getId(), context);
                     }
+
+                    //remove existing order
+                    if (callee instanceof Mob) {
+                        var calleemob = (Mob) callee;
+                        var ai = calleemob.goalSelector.getAvailableGoals().stream().filter(g -> g.getGoal() instanceof AIOperationGoal).findFirst();
+                        if (ai.isPresent()) {
+                            ai.get().getGoal().stop();
+                        }
+                    }
+
+                    orders = AIOrderParser.parse(callee, context, calleeMessage);
+
+                } catch (Exception e) {
+                    logger.error("parse error", e);
+                    //notify
+                    LMMChat.addChatMessage(callee, caller, true, chatData.isCallerIsSystem(),
+                            "parse error.maybe contains invalid order.", chatData.getConversationCount());
+                    continue;
                 }
 
-                orders = AIOrderParser.parse((LivingEntity) callee,context, calleeMessage);
+                // --- EXECUTE GOAL --
+                if (!orders.isEmpty()) {
+                    Mob calleemob = (Mob) callee;
+                    var ai = calleemob.goalSelector.getAvailableGoals().stream().filter(g -> g.getGoal() instanceof AIOperationGoal).findFirst();
+                    var aiop = (AIOperationGoal) ai.get().getGoal();
+                    //forget previous order
+                    aiop.forget();
+                    //check running thread
+                    aiop.activate(orders);
 
-            }catch (Exception e){
-                logger.error("parse error",e);
-                //notify
-                LMMChat.addChatMessage(callee, caller,true,chatData.isCallerIsSystem(),
-                        "parse error.maybe contains invalid order.", chatData.getConversationCount());
-                continue;
+                    return;
+                }
             }
-            // --- EXECUTE GOAL --
-            if(!orders.isEmpty()){
-                Mob calleemob=(Mob)callee;
-                var ai=calleemob.goalSelector.getAvailableGoals().stream().filter(g->g.getGoal() instanceof AIOperationGoal).findFirst();
-                var aiop=(AIOperationGoal)ai.get().getGoal();
-                //forget previous order
-                aiop.forget();
-                //check running thread
-                aiop.activate(orders);
-
-                return;
-            }
-
             // --- CONVERSATION ---
             //caller is lmm?
             if(!forceOwner){

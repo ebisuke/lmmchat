@@ -6,8 +6,11 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.PotionItem;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class Helper {
@@ -61,5 +64,27 @@ public class Helper {
             }
         }
         return null;
+    }
+    public static ArrayList<ItemStack> findEdibleItems(Container inventory){
+        var list=new ArrayList<ItemStack>();
+        for(int i=0;i<inventory.getContainerSize();i++){
+            var stack=inventory.getItem(i);
+            if(stack.isEdible()){
+                list.add(stack);
+            }
+        }
+        return list;
+    }
+    public static ArrayList<ItemStack> findPotionItems(Container inventory){
+        var list=new ArrayList<ItemStack>();
+        for(int i=0;i<inventory.getContainerSize();i++){
+            var stack=inventory.getItem(i);
+            //is potion?
+
+            if(stack.getItem() instanceof PotionItem){
+                list.add(stack);
+            }
+        }
+        return list;
     }
 }

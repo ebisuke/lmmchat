@@ -46,6 +46,7 @@ public class AIOrderDefinitions {
         register("interact", InteractOrder::new);
         register("fortify", FortifyOrder::new);
         register("craft", CraftingOrder::new);
+        register("healowner", HealOwnerOrder::new);
 
 
     }

@@ -43,6 +43,7 @@ public class Injector {
             entity.goalSelector.addGoal(1,new jp.mochisuke.lmmchat.goal.StatusNotificationGoal<LittleMaidEntity>(entity));
             //entity.goalSelector.addGoal(3,new jp.mochisuke.lmmchat.goal.HurtNotificationGoal<LittleMaidEntity>(entity));
             entity.goalSelector.addGoal(3,new jp.mochisuke.lmmchat.goal.EventNotificationGoal<LittleMaidEntity>(entity));
+            entity.goalSelector.addGoal(4,new jp.mochisuke.lmmchat.goal.HealOwnerGoal<LittleMaidEntity>(entity));
         }
     }
 }

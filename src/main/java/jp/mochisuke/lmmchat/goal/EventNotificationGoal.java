@@ -190,7 +190,7 @@ public class EventNotificationGoal<T extends TamableAnimal> extends AIGoalBase{
 
 
     public void onEnderManAngered(net.minecraftforge.event.entity.living.EnderManAngerEvent event){
-        addEvent("you heard a horrible scream from "+event.getEntity().getDisplayName().getString()+".\n");
+        // addEvent("you heard a horrible scream from "+event.getEntity().getDisplayName().getString()+".\n");
     }
 
     public void onVillageSieged(net.minecraftforge.event.village.VillageSiegeEvent event){
