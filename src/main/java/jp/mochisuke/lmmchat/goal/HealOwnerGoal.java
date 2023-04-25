@@ -44,7 +44,7 @@ public class HealOwnerGoal<T extends TamableAnimal> extends AIGoalBase{
         //navigate to owner
         LivingEntity owner=entity.getOwner();
         if(owner==null){
-            fail("no owner");
+            fail("owner not found");
             return;
         }
         entity.getNavigation().moveTo(owner,1.0);

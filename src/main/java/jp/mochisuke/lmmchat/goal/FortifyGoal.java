@@ -39,7 +39,7 @@ public class FortifyGoal<T extends TamableAnimal> extends AIGoalBase {
 
     @Override
     public boolean canUse() {
-        return active ;
+        return active && entity.getOwner()!=null ;
     }
 
     public void setFortify(boolean on) {

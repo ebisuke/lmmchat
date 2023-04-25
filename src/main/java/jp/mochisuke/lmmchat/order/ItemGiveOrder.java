@@ -3,6 +3,7 @@ package jp.mochisuke.lmmchat.order;
 import jp.mochisuke.lmmchat.goal.GiveItemGoal;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -15,7 +16,7 @@ public class ItemGiveOrder extends AIOrderBase{
 
     //x,y,z,itemname,minslotindex,maxslotindex
     private String itemname;
-    private int targetid;
+    private String targetid;
     private int itemcount;
     public ItemGiveOrder(LivingEntity entity,VariablesContext context, List<Object> args) {
         super(entity, context, args);
@@ -27,9 +28,9 @@ public class ItemGiveOrder extends AIOrderBase{
         this.itemname=(String)args.get(0);
         String targetid,itemcount;
         targetid= (String) args.get(1);
-        itemcount= (String) args.get(2);
-        this.targetid=Integer.parseInt(targetid);
-        this.itemcount=val(itemcount);
+        itemcount = (String) args.get(2);
+        this.targetid = valstr(targetid);
+        this.itemcount = val(itemcount);
 
     }
 
@@ -50,14 +51,26 @@ public class ItemGiveOrder extends AIOrderBase{
 
     @Override
     public void executeImpl() {
-        if(Objects.equals(itemname,"-")){
-            var target = (LivingEntity) entity.getLevel().getEntity(targetid);
+        if (Objects.equals(targetid, "-")) {
+            //get owner id
+            TamableAnimal tamableAnimal = (TamableAnimal) entity;
+            var owner = tamableAnimal.getOwner();
+            if (owner == null) {
+                //fail
+                throw new RuntimeException("No owner");
+            } else {
+                targetid = String.valueOf(entity.getId());
+            }
+        }
+        int targetIdInt = Integer.parseInt(targetid);
+        if (Objects.equals(itemname, "-")) {
+            var target = (LivingEntity) entity.getLevel().getEntity(targetIdInt);
             Mob mob = (Mob) entity;
             mob.goalSelector.getAvailableGoals().stream().filter(g -> g.getGoal() instanceof GiveItemGoal).findFirst().ifPresent(g -> {
                 ((GiveItemGoal) g.getGoal()).setup(target, null, itemcount);
                 prepareGoal((GiveItemGoal) g.getGoal());
             });
-        }else {
+        } else {
             //finditem from db
             AtomicReference<ItemStack> stack = null;
 
@@ -67,7 +80,7 @@ public class ItemGiveOrder extends AIOrderBase{
 
             final ItemStack stack2 = stack.get();
             //entity id to entity
-            var target = (LivingEntity) entity.getLevel().getEntity(targetid);
+            var target = (LivingEntity) entity.getLevel().getEntity(targetIdInt);
             Mob mob = (Mob) entity;
             mob.goalSelector.getAvailableGoals().stream().filter(g -> g.getGoal() instanceof GiveItemGoal).findFirst().ifPresent(g -> {
                 ((GiveItemGoal) g.getGoal()).setup(target, stack2, itemcount);

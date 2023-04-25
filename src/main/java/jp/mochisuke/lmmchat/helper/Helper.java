@@ -2,16 +2,23 @@ package jp.mochisuke.lmmchat.helper;
 
 import jp.mochisuke.lmmchat.LMMChat;
 import jp.mochisuke.lmmchat.goal.AIGoalBase;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PotionItem;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 public class Helper {
     public static Container getInventoryContainer(Entity entity){
@@ -87,4 +94,91 @@ public class Helper {
         }
         return list;
     }
+    public static Player getOwner(TamableAnimal entity){
+        Player owner=null;
+        if(entity.getOwner() instanceof Player){
+            owner=(Player) entity.getOwner();
+        }else{
+            //byuuid
+            var uuid=entity.getOwnerUUID();
+            if(uuid!=null){
+
+                owner=LMMChat.findPlayerByUUID(uuid);
+
+
+            }
+        }
+
+        return owner;
+    }
+    public static int countItem(Container inventory, Predicate<ItemStack> filter){
+        int count=0;
+        for(int i=0;i<inventory.getContainerSize();i++){
+            var stack=inventory.getItem(i);
+            if(filter.test(stack)){
+                count+=stack.getCount();
+            }
+        }
+        return count;
+    }
+    public static void consumeItem(Container container, Item item,int count){
+        for(int i=0;i<container.getContainerSize();i++){
+            var stack=container.getItem(i);
+            if(stack.getItem().equals(item)){
+                if(stack.getCount()<=count){
+                    container.removeItem(i,stack.getCount());
+                    count-=stack.getCount();
+                }else{
+                    container.removeItem(i,count);
+                    count=0;
+                }
+                if(count<=0){
+                    break;
+                }
+            }
+        }
+    }
+
+    public static Tuple<Integer,ItemStack> findItemStack(Container inventory, String itemName) {
+        for(int i=0;i<inventory.getContainerSize();i++){
+            var stack=inventory.getItem(i);
+            if(stack.getDisplayName().getString().toLowerCase().contains(itemName)){
+                return new Tuple<>(i,stack);
+            }
+        }
+        return null;
+    }
+    public static boolean addItem(Container inventory, ItemStack stack){
+
+        //backup for prevent failing
+        Map<Integer,ItemStack> backup=new HashMap<>();
+        for(int i=0;i<inventory.getContainerSize();i++){
+            var s=inventory.getItem(i);
+            if(!s.isEmpty()){
+                backup.put(i,s.copy());
+            }
+        }
+
+        for(int i=0;i<inventory.getContainerSize();i++){
+            var s=inventory.getItem(i);
+            if(s.isEmpty()){
+                inventory.setItem(i,stack);
+                return true;
+            }else if(s.sameItem(stack) && s.getCount()+stack.getCount()<=s.getMaxStackSize()){
+                s.setCount(s.getCount()+stack.getCount());
+                return true;
+            }else if(s.sameItem(stack) && s.getCount()+stack.getCount()>s.getMaxStackSize()){
+                var newStack=stack.copy();
+                newStack.setCount(s.getCount()+stack.getCount()-s.getMaxStackSize());
+                s.setCount(s.getMaxStackSize());
+                stack=newStack;
+            }
+        }
+        //rollback
+        for(var entry:backup.entrySet()){
+            inventory.setItem(entry.getKey(),entry.getValue());
+        }
+        return false;
+    }
+
 }

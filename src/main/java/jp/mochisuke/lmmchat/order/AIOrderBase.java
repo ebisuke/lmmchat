@@ -47,6 +47,22 @@ public abstract class AIOrderBase implements ChatGenerationCallback,AIGoalBase.C
 
 
     }
+    protected String valstr(String o){
+        if(this.context.variables.containsKey(o)){
+            return this.context.variables.get(o).toString();
+        }
+
+        //name is number?
+        var ret=context.eval(o);
+        //unbox
+        if(ret instanceof Double){
+            return String.valueOf (ret);
+        }else if(ret instanceof Integer){
+            return String.valueOf ((Integer)ret);
+        }
+
+        throw new IllegalArgumentException("not number:"+o);
+    }
     protected void val(String o,double value){
         context.setVar(o,(double)value);
     }

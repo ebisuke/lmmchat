@@ -55,7 +55,8 @@ public class LMMEventReceiver {
             var pos=entity.blockPosition();
             var maids=world.getEntitiesOfClass(TamableAnimal.class, entity.getBoundingBox().inflate(50)  ,e->e.getClass().getName().contains("LittleMaidEntity"));
             for(var maid:maids){
-                if(maid.getOwner()==entity) {
+
+                if(Helper.getOwner(maid)==entity) {
                     //get goal
                     EventNotificationGoal goal = (EventNotificationGoal) Helper.getGoal(maid, EventNotificationGoal.class);
                     if (goal != null) {

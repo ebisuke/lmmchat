@@ -96,6 +96,7 @@ public class AIOperationGoal  <T extends Mob>  extends Goal implements AIGoalBas
                         onSuccess();
                     }
                 }catch (Exception e){
+                    logger.info("AIOperationGoal.tick:execute order:"+currentOrder.getClass().getName()+" failed:"+e.getMessage());
                     onFailed(e.getMessage());
                 }
             }

@@ -6,6 +6,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.ForgeRegistry;
@@ -56,11 +57,6 @@ public class StatusNotificationGoal<T extends TamableAnimal> extends Goal {
                 //nearby enemy
                 int enemies = entity.level.getEntitiesOfClass(Monster.class, entity.getBoundingBox().inflate(20)).size();
                 //owner hp/maxhp
-                if(entity.getOwner()==null) return;
-                float ownerHp = entity.getOwner().getHealth();
-                float ownerMaxHp = entity.getOwner().getMaxHealth();
-
-                float distance = entity.distanceTo(entity.getOwner());
 
                 Container inventory= Helper.getInventoryContainer(entity);
 
@@ -79,10 +75,32 @@ public class StatusNotificationGoal<T extends TamableAnimal> extends Goal {
                     statusEffect="effects:"+statusEffect.substring(0,statusEffect.length()-1);
 
                 }
+                Player owner=Helper.getOwner(entity);
+                String ownerStatus="";
+                if(owner!=null) {
+                    float ownerHp = owner.getHealth();
+                    float ownerMaxHp = owner.getMaxHealth();
+                    String distance;
+                    //same level?
+                    if(owner.level==entity.level){
+                        distance = String.format("distance %.0f",entity.distanceTo(owner));
+                    }else{
+                        distance="owner is in different dimension";
+                    }
+
+                    ownerStatus = String.format("owner hp:%.0f/%.0f,%s", ownerHp, ownerMaxHp, distance);
+
+
+                }else{
+                    ownerStatus="owner:unknown";
+                }
+
                 String message = "Status Notification: \n";
-                message += String.format("Now is %s. your hp:%.0f/%.0f,owner hp:%.0f/%.0f,distance %.0f,location %.1f,%.1f,%.1f," +
+                message += String.format("Now is %s. your hp:%.0f/%.0f,location %.1f,%.1f,%.1f,%s," +
                                 "nearby enemies:%d,sugar salary:%d "+statusEffect,
-                        Helper.getDateAsTimeFormat(),hp, maxHp, ownerHp, ownerMaxHp, distance, x, y, z,  enemies,sugarcount);
+                        Helper.getDateAsTimeFormat(),hp, maxHp, x, y, z, ownerStatus, enemies,sugarcount);
+                LMMChat.addChatMessage(null, entity, true, false, message, 0);
+
 
                 LMMChat.addChatMessage(null, entity, true, false, message, 0);
 

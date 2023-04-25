@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -31,6 +32,7 @@ import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.UUID;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(LMMChat.MODID)
@@ -103,6 +105,9 @@ public class LMMChat {
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
         AIOrderDefinitions.initialize();
+    }
+    public static Player findPlayerByUUID(UUID uuid){
+        return server.getPlayerList().getPlayer(uuid);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {

@@ -1,11 +1,11 @@
 package jp.mochisuke.lmmchat.order;
 
 import com.mojang.logging.LogUtils;
+import jp.mochisuke.lmmchat.helper.Helper;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import org.slf4j.Logger;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Vector;
@@ -46,12 +46,20 @@ public class AIOrderParser {
 
 
         for(String orderLine : ordertext) {
-            if(!orderLine.contains("!")){
+            // ! or @
+            if(!orderLine.contains("!") && !orderLine.startsWith("@")){
                 continue;
             }
 
             //remove before !
-            orderLine = orderLine.substring(orderLine.indexOf("!")+1);
+            if(orderLine.contains("!")){
+                orderLine = orderLine.substring(orderLine.indexOf("!")+1);
+            }else{
+                orderLine = orderLine.substring(orderLine.indexOf("@")+1);
+                //replace first @ to !
+                orderLine = orderLine.replaceFirst("@", "!");
+            }
+
 
             //remove string from any non ascii character to line end
             orderLine=orderLine.replaceAll("[^\\x00-\\x7F]+", "");
@@ -91,8 +99,15 @@ public class AIOrderParser {
                 }
                 continue;
             }
+
             //concat after 1 by comma
-            String argsString = Arrays.stream(orderNameAndArgs).reduce("", (a, b) -> a + "," + b);
+            String argsString ="";
+            for(int i=1;i<orderNameAndArgs.length;i++){
+                argsString += orderNameAndArgs[i];
+                if(i != orderNameAndArgs.length - 1){
+                    argsString += ",";
+                }
+            }
             String[] args = argsString.split(",");
             //replace @s to owner id
 
@@ -100,7 +115,8 @@ public class AIOrderParser {
             for(int i=0;i<args.length;i++){
                 if(args[i].equals("@s")){
                     if(sender instanceof TamableAnimal){
-                        String ownerid= String.valueOf(((TamableAnimal) sender).getOwner().getId());
+                        var owner= Helper.getOwner((TamableAnimal) sender);
+                        String ownerid= String.valueOf(owner.getId());
                         args[i]=ownerid;
                     }else{
                         logger.error("sender is not tamable animal");

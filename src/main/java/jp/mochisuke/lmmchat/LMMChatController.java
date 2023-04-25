@@ -2,6 +2,7 @@ package jp.mochisuke.lmmchat;
 
 import com.mojang.logging.LogUtils;
 import jp.mochisuke.lmmchat.goal.AIOperationGoal;
+import jp.mochisuke.lmmchat.helper.Helper;
 import jp.mochisuke.lmmchat.order.AIOrderBase;
 import jp.mochisuke.lmmchat.order.AIOrderParser;
 import jp.mochisuke.lmmchat.order.VariablesContext;
@@ -13,7 +14,6 @@ import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.sistr.littlemaidrebirth.entity.util.Tameable;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -63,34 +63,7 @@ public class LMMChatController {
                 forceOwner=true;
             }
             logger.info("callee:"+calleeMessage);
-            // ---------- SHOW CHAT ---------
-            var calleeMessageChat=AIOrderParser.parsedRemnant(calleeMessage);
-            if(!calleeMessageChat.strip().isEmpty()) {
 
-
-                if (!chatData.isCalleeIsSystem()) {
-
-                    //logger.info("TALK:" + caller.getName().getString() + ":" + chatData.getCallerMessage() + ":" + callee.getName().getString() + ":" + chatData.getCalleeMessage());
-                    if (forceOwner) {
-                        logger.info("TALK:force owner");
-                        var tamable = (Tameable) callee;
-                        var owner = tamable.getTameOwner();
-                        //owner.get().getser(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
-                        owner.get().sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + calleeMessageChat));
-
-                    } else {
-
-                        //say chat to nearest players
-                        String finalCalleeMessage = calleeMessageChat;
-                        callee.getCommandSenderWorld().getNearbyPlayers(TargetingConditions.forNonCombat(), (LivingEntity) callee,/*AABB*/ callee.getBoundingBox().inflate(10)
-                        ).forEach(player -> {
-                            //player.displayClientMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
-                            player.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + finalCalleeMessage));
-                        });
-                    }
-
-                }
-            }
             //------- ORDER -------
             List<AIOrderBase> orders;
             if(callee instanceof TamableAnimal) {
@@ -136,6 +109,36 @@ public class LMMChatController {
                     return;
                 }
             }
+            // ---------- SHOW CHAT ---------
+            var calleeMessageChat=AIOrderParser.parsedRemnant(calleeMessage);
+            if(!calleeMessageChat.strip().isEmpty()) {
+
+
+                if (!chatData.isCalleeIsSystem()) {
+
+                    //logger.info("TALK:" + caller.getName().getString() + ":" + chatData.getCallerMessage() + ":" + callee.getName().getString() + ":" + chatData.getCalleeMessage());
+                    if (forceOwner) {
+                        logger.info("TALK:force owner");
+                        var tamable = (TamableAnimal) callee;
+                        var owner = Helper.getOwner(tamable);
+                        if(owner!=null) {                        //owner.get().getser(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
+                            owner.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + calleeMessageChat));
+                        }else{
+                            logger.info("TALK:owner not found");
+                        }
+                    } else {
+
+                        //say chat to nearest players
+                        String finalCalleeMessage = calleeMessageChat;
+                        callee.getCommandSenderWorld().getNearbyPlayers(TargetingConditions.forNonCombat(), (LivingEntity) callee,/*AABB*/ callee.getBoundingBox().inflate(10)
+                        ).forEach(player -> {
+                            //player.displayClientMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
+                            player.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + finalCalleeMessage));
+                        });
+                    }
+
+                }
+            }
             // --- CONVERSATION ---
             //caller is lmm?
             if(!forceOwner){
@@ -177,14 +180,19 @@ public class LMMChatController {
             var split=substr.split(" ");
             var name=split[0];
             //get entity in all world by name
-            var allents=player.getLevel().getAllEntities();
+            var alllevel=player.getServer().getAllLevels();
+
+
             var allmaids=new ArrayList<TamableAnimal>();
-            for(var entity:allents){
-                if(entity instanceof TamableAnimal) {
-                    TamableAnimal animal=(TamableAnimal)entity;
-                    if (animal.getClass().toString().contains("LittleMaidEntity") &&
-                            animal.isTame()&&animal.getOwner()==player) {
-                        allmaids.add((TamableAnimal) entity);
+            for(var level:alllevel) {
+                var allents=level.getAllEntities();
+                for (var entity : allents) {
+                    if (entity instanceof TamableAnimal) {
+                        TamableAnimal animal = (TamableAnimal) entity;
+                        if (animal.getClass().toString().contains("LittleMaidEntity") &&
+                                animal.isTame() && Helper.getOwner(animal) == player) {
+                            allmaids.add((TamableAnimal) entity);
+                        }
                     }
                 }
             }

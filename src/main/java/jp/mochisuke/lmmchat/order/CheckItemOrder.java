@@ -7,11 +7,10 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
-import java.util.Optional;
 
 public class CheckItemOrder extends AIOrderBase{
 
-    Optional<Integer> slotIndex;
+    String itemName;
     public CheckItemOrder(LivingEntity entity, VariablesContext context, List<Object> args) {
         super(entity, context, args);
     }
@@ -20,9 +19,9 @@ public class CheckItemOrder extends AIOrderBase{
     protected void startUp(LivingEntity entity, VariablesContext context, List<Object> args) {
         if(args.size()>0){
             String slotIndexStr=args.get(0).toString();
-            slotIndex=Optional.of((Integer)val(slotIndexStr));
+            itemName=valstr(slotIndexStr);
         }else{
-            slotIndex=Optional.empty();
+            itemName=null;
         }
     }
 
@@ -37,27 +36,30 @@ public class CheckItemOrder extends AIOrderBase{
         Mob mob=(Mob)entity;
         Container inventory = Helper.getInventoryContainer(mob);
         ItemStack item;
-        if(slotIndex.isPresent()){
-            item=inventory.getItem(slotIndex.get());
+        if(itemName!=null){
+            //if itemname is integer, use it as slot index
+            try {
+                int slotindex = Integer.parseInt(itemName);
+                item=inventory.getItem(slotindex);
+            }catch(NumberFormatException e){
+                item=Helper.findItemStack(inventory,itemName).getB();
+            }
+
         }else{
             item=entity.getMainHandItem();
         }
-        if(item.isEmpty()){
-            notifyAI("item is empty");
-        }else{
-            String message="";
-            //itemname,count,dur,enchants
-            message+="Item name:"+item.getItem().getName(item).getString()+"\n";
-            message+="Internal Name"+item.getItem().getDescriptionId()+"\n";
-            message+="Count:"+item.getCount()+"\n";
-            if(item.getMaxDamage()>0) {
-                message += "Durability:" + item.getDamageValue() + "/" + item.getMaxDamage() + "\n";
-            }
-            //item kind
-            message+="Item kind:"+item.getItem().getClass().getName()+"\n";
-            message+="Enchantments:"+item.getEnchantmentTags().toString();
-            notifyAI(message);
+        String message = "";
+        //itemname,count,dur,enchants
+        message+="Item name:"+item.getItem().getName(item).getString()+"\n";
+        message+="Internal Name"+item.getItem().getDescriptionId()+"\n";
+        message+="Count:"+item.getCount()+"\n";
+        if(item.getMaxDamage()>0) {
+            message += "Durability:" + item.getDamageValue() + "/" + item.getMaxDamage() + "\n";
         }
+        //item kind
+        message+="Item kind:"+item.getItem().getClass().getName()+"\n";
+        message+="Enchantments:"+item.getEnchantmentTags().toString();
+        notifyAI(message);
 
     }
 }

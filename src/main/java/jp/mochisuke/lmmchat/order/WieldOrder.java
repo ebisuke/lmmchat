@@ -11,7 +11,7 @@ import java.util.List;
 
 public class WieldOrder extends AIOrderBase {
 
-    int slotIndex;
+    String itemName;
     String to;
     public WieldOrder(LivingEntity entity, VariablesContext context, List<Object> args) {
         super(entity, context, args);
@@ -20,7 +20,7 @@ public class WieldOrder extends AIOrderBase {
     @Override
     protected void startUp(LivingEntity entity, VariablesContext context, List<Object> args) {
         //get slot index
-        this.slotIndex = val((String) args.get(0));
+        this.itemName = valstr((String) args.get(0));
         this.to=(String)args.get(1);
     }
 
@@ -44,57 +44,76 @@ public class WieldOrder extends AIOrderBase {
         //get item from inventory
         Mob mob = (Mob) entity;
         Container inventory = Helper.getInventoryContainer(mob);
+        ItemStack item;
         //OK
-        var item = inventory.getItem(slotIndex);
-        if (item.isEmpty()) {
-            throw new RuntimeException("Item is empty");
+        int slotindex=0;
+        if(itemName!=null){
+            //if itemname is integer, use it as slot index
+            try {
+                slotindex = Integer.parseInt(itemName);
+                item=inventory.getItem(slotindex);
+            }catch(NumberFormatException e){
+                var ret=Helper.findItemStack(inventory,itemName);
+                item=ret.getB();
+                slotindex=ret.getA();
+            }
+
+        }else{
+            item=entity.getMainHandItem();
+            slotindex=-1;
         }
         ItemStack oldItem;
-        switch(to){
-            case "mainhand":
-                oldItem=entity.getItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND);
-                entity.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,item);
-                entity.playSound(SoundEvents.ARMOR_EQUIP_GENERIC,1.0f,1.0f);
-                break;
-            case "offhand":
-                oldItem=entity.getItemInHand(net.minecraft.world.InteractionHand.OFF_HAND);
-                entity.setItemInHand(net.minecraft.world.InteractionHand.OFF_HAND,item);
-                entity.playSound(SoundEvents.ARMOR_EQUIP_GENERIC,1.0f,1.0f);
-
-                break;
-            case "head":
-                oldItem=entity.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
-                entity.setItemSlot(net.minecraft.world.entity.EquipmentSlot.HEAD,item);
-                entity.playSound(net.minecraft.sounds.SoundEvents.ARMOR_EQUIP_GENERIC,1.0f,1.0f);
-
-                break;
-            case "chest":
-                oldItem=entity.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.CHEST);
-                entity.setItemSlot(net.minecraft.world.entity.EquipmentSlot.CHEST,item);
-                entity.playSound(net.minecraft.sounds.SoundEvents.ARMOR_EQUIP_GENERIC,1.0f,1.0f);
-
-                break;
-            case "legs":
-                oldItem=entity.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.LEGS);
-                entity.setItemSlot(net.minecraft.world.entity.EquipmentSlot.LEGS,item);
-                entity.playSound(net.minecraft.sounds.SoundEvents.ARMOR_EQUIP_GENERIC,1.0f,1.0f);
-
-                break;
-            case "feet":
-                oldItem=entity.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET);
-                entity.setItemSlot(net.minecraft.world.entity.EquipmentSlot.FEET,item);
-                entity.playSound(net.minecraft.sounds.SoundEvents.ARMOR_EQUIP_GENERIC,1.0f,1.0f);
-
-                break;
-            default:
-                throw new RuntimeException("Invalid hand:"+to);
+        switch (to) {
+            case "mainhand" -> {
+                oldItem = entity.getItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND);
+                entity.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, item);
+                entity.playSound(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
+            }
+            case "offhand" -> {
+                oldItem = entity.getItemInHand(net.minecraft.world.InteractionHand.OFF_HAND);
+                entity.setItemInHand(net.minecraft.world.InteractionHand.OFF_HAND, item);
+                entity.playSound(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
+            }
+            case "head" -> {
+                oldItem = entity.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
+                entity.setItemSlot(net.minecraft.world.entity.EquipmentSlot.HEAD, item);
+                entity.playSound(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
+            }
+            case "chest" -> {
+                oldItem = entity.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.CHEST);
+                entity.setItemSlot(net.minecraft.world.entity.EquipmentSlot.CHEST, item);
+                entity.playSound(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
+            }
+            case "legs" -> {
+                oldItem = entity.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.LEGS);
+                entity.setItemSlot(net.minecraft.world.entity.EquipmentSlot.LEGS, item);
+                entity.playSound(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
+            }
+            case "feet" -> {
+                oldItem = entity.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET);
+                entity.setItemSlot(net.minecraft.world.entity.EquipmentSlot.FEET, item);
+                entity.playSound(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
+            }
+            default -> throw new RuntimeException("Invalid hand:" + to);
         }
         //put old item to inventory
-        if(!oldItem.isEmpty()){
-            inventory.setItem(slotIndex,oldItem);
-        }else{
-            inventory.removeItem(slotIndex,1);
+        if(slotindex!=-1){
+            //mainhand
+            if (!oldItem.isEmpty()) {
+                entity.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, oldItem);
+            } else {
+                entity.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            }
+            //swing
+            entity.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
+        }else {
+            if (!oldItem.isEmpty()) {
+                inventory.setItem(slotindex, oldItem);
+            } else {
+                inventory.removeItem(slotindex, 1);
+            }
         }
+
 
 
     }

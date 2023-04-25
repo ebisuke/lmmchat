@@ -34,7 +34,7 @@ public abstract class AIGoalBase extends Goal {
 
     }
     protected void fail(String reason) {
-        logger.info(this.getClass().getName()+" fail"+reason);
+        logger.info(this.getClass().getName()+" fail:"+reason);
         active = false;
         if(callback!=null)
             callback.onFailed(reason);

@@ -33,8 +33,8 @@ public class AIOrderDefinitions {
         register("findowner", OwnerIdOrder::new);
         register("findentity", FindEntityOrder::new);
         register("findblock", FindBlockOrder::new);
-        register("take", ItemTakeOrder::new);
-        register("give", ItemGiveOrder::new);
+        register("takeitem", ItemTakeOrder::new);
+        register("giveitem", ItemGiveOrder::new);
         register("put", BlockItemPutOrder::new);
         register("pick", BlockItemPickupOrder::new);
         register("pos", PositionOrder::new);
@@ -47,6 +47,7 @@ public class AIOrderDefinitions {
         register("fortify", FortifyOrder::new);
         register("craft", CraftingOrder::new);
         register("healowner", HealOwnerOrder::new);
+        register("emerg", TeleportOwnerOrder::new);
 
 
     }

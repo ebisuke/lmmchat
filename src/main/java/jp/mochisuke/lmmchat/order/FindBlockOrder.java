@@ -24,7 +24,7 @@ public class FindBlockOrder extends AIOrderBase{
     @Override
     protected void startUp(LivingEntity entity, VariablesContext context, List<Object> args) {
         blockname= (String) args.get(0);
-
+        assert blockname!=null && blockname.length()>0;
 
     }
 
@@ -44,7 +44,7 @@ public class FindBlockOrder extends AIOrderBase{
             for(int y=pos.getY()-size/2;y<pos.getY()+size/2;y++){
                 for(int z=pos.getZ()-size/2;z<pos.getZ()+size/2;z++){
                     var block=entity.getLevel().getBlockState(new BlockPos(x,y,z));
-                    if(block.getBlock().getDescriptionId().contains(blockname)){
+                    if(block.getBlock().getName().getString().toLowerCase().contains(blockname)){
                         //found
                         xx=x;
                         yy=y;
@@ -71,15 +71,23 @@ public class FindBlockOrder extends AIOrderBase{
         });
 
 
-
         String message="";
         message+="Found "+blocks.size()+" blocks:";
+
+        if(blocks.size()>10){
+            blocks= new ArrayList<>(blocks.subList(0,10));
+            message+="(showing 10)";
+        }
         int idx=0;
 
 
 
         for(var block:blocks){
+            xx= (int) block.getA().getX();
+            yy= (int) block.getA().getY();
+            zz= (int) block.getA().getZ();
             message+=""+idx+":"+ block.getB().getBlock().getName().getString()+":"+String.format("%d,%d,%d",xx,yy,zz)+"\n";
+            idx++;
         }
         xx= (int) blocks.get(0).getA().getX();
         yy= (int) blocks.get(0).getA().getY();
