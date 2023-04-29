@@ -20,7 +20,10 @@ public class BlockInspectOrder extends AIOrderBase{
 
     @Override
     protected void startUp(LivingEntity entity, VariablesContext context, List<Object> args) {
-        String x,y,z;
+        String x, y, z;
+        if (args.size() < 3){
+            throw new RuntimeException("invalid argument count or not provided");
+        }
         x= (String) args.get(0);
         y= (String) args.get(1);
         z= (String) args.get(2);

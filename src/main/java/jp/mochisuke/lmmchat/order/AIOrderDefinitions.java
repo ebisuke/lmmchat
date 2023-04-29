@@ -48,7 +48,9 @@ public class AIOrderDefinitions {
         register("craft", CraftingOrder::new);
         register("healowner", HealOwnerOrder::new);
         register("emerg", TeleportOwnerOrder::new);
-
+        register("observe", ObserveOrder::new);
+        //register("cc", TransitionComputerCraftModeOrder::new);
+        //register("exit", TransitionNormalModeOrder::new);
 
     }
 

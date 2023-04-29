@@ -20,11 +20,12 @@ public class LMMChatConfig  {
     public static String getPreface(){
         return config.get("preface");
     }
+    public static String getComputerCraftPreface(){
+        return config.get("computercraftpreface");
+    }
     public static String getNeutralPreface(){
         return config.get("neutralpreface");
     }
-
-    
 
     public static int getMaxTokens(){
         return config.get("maxtokens");
@@ -62,6 +63,15 @@ public class LMMChatConfig  {
     public static long getConcentratePromptInterval(){
         return config.get("concentratepromptinterval");
     }
+    public static boolean isEnableEmbeddeding(){
+        return config.get("enableembedding");
+    }
+    public static double getThresholdSimilarity(){
+        return config.get("thresholdembedding");
+    }
+    public static int getEmbeddingInjectCount(){
+        return config.get("embeddinginjectcount");
+    }
     public static void loadConfig(){
 
         // load from file
@@ -85,6 +95,7 @@ public class LMMChatConfig  {
 !giveitem id,itemname,count: プレイヤー含むエンティティへアイテムを渡します。数指定可能。ブロックからは受け取れません。
 !place x,y,z,itemname: 指定された座標にブロックを設置します。
 !interact x,y,z: 指定された座標のブロックを操作します。
+!observe x,y,z: 指定された座標のブロックの変化を監視します。
 !findentity entityname: 指定された名前のエンティティを検索します。変数idにエンティティのID,x,y,zに座標が格納されます。
 !findowner: ご主人様を探します。変数id,x,y,zに座標が格納されます。
 !findblock blockname: 指定された名前のブロックを検索します。変数x,y,zに座標が格納されます。
@@ -97,6 +108,25 @@ public class LMMChatConfig  {
 !healowner: ご主人様を回復するコマンドです。回復は食料を使用し、HPが半分以下ならさらにポーション・金リンゴを使用します。ご主人様のおなかが空いていたら使ってあげてください。
 !emerg: ご主人様の近くへ瞬時に移動します。砂糖を30個とHPを5消費します。不足している場合はさらにHPを消費しますが0以下にはなりません。HPが5以下だと使用できません。
 """;
+        var defualt_computercraft_prompt= """
+あなたはメイドさんです。あなたはご主人様に奉仕します。あなたはComputerCraftモードです。
+あなたはマインクラフトのキャラクターです。あなたは少女で語尾が「にゃ」かつタメ口で話します。
+あなたは返答の先頭に@を付けることで、距離問わずご主人様とあなたの間で会話できます。つけない場合はコンピューターを制御します。
+あなたはマウスやキーボードなどのインタフェースを持っていませんが、コマンドを使用することで、様々な操作ができます。
+あなたは各行の先頭に!を付けることで通常コマンドを指示できます。
+あなたはLua言語を扱うことが出来ます。
+以下の通常コマンドを使用できます。
+!exit: ComputerCraftモードを止め、ただのメイドさんに戻ります。
+
+Lua言語は例として以下の関数を使用できます。
+turtle.forward(): 1ブロック前に進みます。
+turtle.back(): 1ブロック後ろに戻ります。
+turtle.select(slotindex): スロットを選択します。
+turtle.refuel(count): 燃料を補給します。countは補給する個数です。
+redstone.setOutput(side,value): 指定した方向のレッドストーン信号を出力します。valueはtrue/falseです。
+""";
+
+
         var default_neutral_prompt= """
 あなたは野良メイドさんです。
 あなたはどのご主人様にも仕えていません。あなたはマインクラフトの世界にいます。
@@ -109,7 +139,10 @@ public class LMMChatConfig  {
         if (!config.contains("apitimeout")) config.add("apitimeout", 30000);
         if (!config.contains("modelname")) config.add("modelname", "gpt-3.5-turbo");
         if (!config.contains("preface")) config.add("preface", default_prompt);
+
         if (!config.contains("neutralpreface")) config.add("neutralpreface", default_neutral_prompt);
+        if (!config.contains("computercraftpreface")) config.add("computercraftpreface", defualt_computercraft_prompt);
+
         if (!config.contains("maxtokens")) config.add("maxtokens", 2048);
         if (!config.contains("conversationlimitforlmms")) config.add("conversationlimitforlmms", 10);
         if (!config.contains("maxqueuesize")) config.add("maxqueuesize", 3);
@@ -126,6 +159,11 @@ public class LMMChatConfig  {
         if (!config.contains("eventnotificationcooldown")) config.add("eventnotificationcooldown", 600);
 
         if (!config.contains("disableteleportowner")) config.add("disableteleportowner", false);
+
+        if(!config.contains("enableembedding")) config.add("enableembedding", true);
+        if(!config.contains("thresholdembedding")) config.add("thresholdembedding", 0.8);
+        if(!config.contains("embeddinginjectcount")) config.add("embeddinginjectcount", 3);
+
         config.save();
     }
 

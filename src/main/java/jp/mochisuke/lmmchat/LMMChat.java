@@ -2,8 +2,8 @@ package jp.mochisuke.lmmchat;
 
 import com.mojang.logging.LogUtils;
 import jp.mochisuke.lmmchat.chat.ChatGenerationRequest;
+import jp.mochisuke.lmmchat.chat.ChatManager;
 import jp.mochisuke.lmmchat.chat.ChatPreface;
-import jp.mochisuke.lmmchat.chat.ChatThread;
 import jp.mochisuke.lmmchat.order.AIOrderDefinitions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.MinecraftServer;
@@ -18,9 +18,11 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.Material;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -38,7 +40,7 @@ import java.util.UUID;
 @Mod(LMMChat.MODID)
 public class LMMChat {
 
-    public  static ChatThread chatThread;
+    public  static ChatManager chatManager;
     static LMMChatController lmmChatController;
     // Define mod id in a common place for everything to reference
     public static final String MODID = "lmmchat";
@@ -89,7 +91,7 @@ public class LMMChat {
 
         ChatGenerationRequest request = new ChatGenerationRequest(caller,callee,callerIsAssistant,
                 calleeIsAssistant,callerMessage,caller!=null?caller.getLevel().getGameTime():callee.getLevel().getGameTime(),conversationCount,preface);
-        chatThread.PushRequest(request);
+        chatManager.PushRequest(request);
     }
     public LMMChat() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -125,16 +127,26 @@ public class LMMChat {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
         //generate chat thread
-        chatThread = new ChatThread();
+
         server = event.getServer();
     }
-
+    @SubscribeEvent
+    public void onServerStarted(ServerStartedEvent event) {
+        chatManager = new ChatManager();
+    }
+    @SubscribeEvent
     public static long getServerTime(){
         return server.getLevel(net.minecraft.world.level.Level.OVERWORLD).getGameTime();
     }
     public static long getElapsedDays(){
         var day= (getServerTime())/24000;
         return day;
+    }
+    public static MinecraftServer getServer(){
+        return server;
+    }
+    public static boolean isEnableComputerCraft(){
+        return ModList.get().isLoaded("computercraft");
     }
     public static long getDayTime(){
         return getServerTime()%24000;

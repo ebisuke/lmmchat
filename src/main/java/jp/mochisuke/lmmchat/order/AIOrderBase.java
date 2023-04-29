@@ -103,7 +103,7 @@ public abstract class AIOrderBase implements ChatGenerationCallback,AIGoalBase.C
         var req=new ChatGenerationRequest(null,entity,true,false,message,
                 LMMChat.getServerTime(),0, preface);
         req.setCallback(this);
-        LMMChat.chatThread.PushRequest(req);
+        LMMChat.chatManager.PushRequest(req);
     }
     public void sendChat(String message,LivingEntity sendto){
         LMMChat.addChatMessage(

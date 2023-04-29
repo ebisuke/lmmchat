@@ -83,7 +83,7 @@ public class AIOrderParser {
 
             orderLine = orderLine.replaceAll("%", "");
 
-            //split by space
+            //split by whitespace
             String[] orderNameAndArgs = orderLine.split(" ");
 
 

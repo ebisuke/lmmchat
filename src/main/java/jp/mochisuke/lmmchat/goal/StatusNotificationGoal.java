@@ -102,7 +102,6 @@ public class StatusNotificationGoal<T extends TamableAnimal> extends Goal {
                 LMMChat.addChatMessage(null, entity, true, false, message, 0);
 
 
-                LMMChat.addChatMessage(null, entity, true, false, message, 0);
 
             }
         }

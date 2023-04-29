@@ -2,7 +2,10 @@ package jp.mochisuke.lmmchat;
 
 import com.mojang.logging.LogUtils;
 import jp.mochisuke.lmmchat.goal.AIOperationGoal;
+import jp.mochisuke.lmmchat.goal.ComputerCraftModeGoal;
 import jp.mochisuke.lmmchat.helper.Helper;
+import jp.mochisuke.lmmchat.lmm.LMMChatMode;
+import jp.mochisuke.lmmchat.lmm.LMMEntityWrapper;
 import jp.mochisuke.lmmchat.order.AIOrderBase;
 import jp.mochisuke.lmmchat.order.AIOrderParser;
 import jp.mochisuke.lmmchat.order.VariablesContext;
@@ -37,16 +40,16 @@ public class LMMChatController {
         //no login user?
         if(event.getServer().getPlayerCount()==0){
             //delete all chat queue
-            LMMChat.chatThread.disable();
+            LMMChat.chatManager.disable();
             return;
         }else{
             //enable chat queue
-            LMMChat.chatThread.enable();
+            LMMChat.chatManager.enable();
         }
 
 
         while(true){
-            var chatData=LMMChat.chatThread.PopChatData();
+            var chatData=LMMChat.chatManager.PopChatData();
             if(chatData==null){
                 break;
             }
@@ -76,6 +79,15 @@ public class LMMChatController {
                         context = new VariablesContext();
                         contextMap.put(callee.getId(), context);
                     }
+                    //put owner id
+
+                    var owner = ((TamableAnimal) callee).getOwner();
+                    if (owner != null) {
+                        context.setVar("owner", (double) owner.getId());
+
+                    }
+
+
 
                     //remove existing order
                     if (callee instanceof Mob) {
@@ -107,13 +119,26 @@ public class LMMChatController {
                     aiop.activate(orders);
 
                     return;
+                }else{
+                    //for computercraft processing
+                    if(LMMChat.isEnableComputerCraft()){
+                        LMMEntityWrapper wrapper = new LMMEntityWrapper((TamableAnimal) callee);
+                        if(wrapper.getChatMode()== LMMChatMode.COMPUTERCRAFT ){
+                            //inject chat
+                            String maybeScript=calleeMessage;
+
+                            ComputerCraftModeGoal goal=(ComputerCraftModeGoal)Helper.getGoal((Mob)callee, ComputerCraftModeGoal.class);
+                            goal.processMessage(maybeScript);
+
+
+                            calleeMessage="";
+                        }
+                    }
                 }
             }
             // ---------- SHOW CHAT ---------
             var calleeMessageChat=AIOrderParser.parsedRemnant(calleeMessage);
             if(!calleeMessageChat.strip().isEmpty()) {
-
-
                 if (!chatData.isCalleeIsSystem()) {
 
                     //logger.info("TALK:" + caller.getName().getString() + ":" + chatData.getCallerMessage() + ":" + callee.getName().getString() + ":" + chatData.getCalleeMessage());
@@ -130,7 +155,7 @@ public class LMMChatController {
 
                         //say chat to nearest players
                         String finalCalleeMessage = calleeMessageChat;
-                        callee.getCommandSenderWorld().getNearbyPlayers(TargetingConditions.forNonCombat(), (LivingEntity) callee,/*AABB*/ callee.getBoundingBox().inflate(10)
+                        callee.getCommandSenderWorld().getNearbyPlayers(TargetingConditions.forNonCombat(), (LivingEntity) callee,/*AABB*/ callee.getBoundingBox().inflate(20)
                         ).forEach(player -> {
                             //player.displayClientMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
                             player.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + finalCalleeMessage));
@@ -168,7 +193,7 @@ public class LMMChatController {
                 LivingEntity.class,
                 TargetingConditions.DEFAULT,
                 player,
-                player.getBoundingBox().inflate(10)
+                player.getBoundingBox().inflate(20)
 
         );
         boolean mention=false;

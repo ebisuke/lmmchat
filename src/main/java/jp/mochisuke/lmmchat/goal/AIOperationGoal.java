@@ -79,7 +79,7 @@ public class AIOperationGoal  <T extends Mob>  extends Goal implements AIGoalBas
         var req=new ChatGenerationRequest(null,entity,true,false,reason,
                 LMMChat.getServerTime()
                 ,0, preface);
-        LMMChat.chatThread.PushRequest(req);
+        LMMChat.chatManager.PushRequest(req);
     }
 
     @Override

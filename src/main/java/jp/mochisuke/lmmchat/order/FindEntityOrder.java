@@ -20,8 +20,11 @@ public class FindEntityOrder extends AIOrderBase{
 
     @Override
     protected void startUp(LivingEntity entity, VariablesContext context, List<Object> args) {
-        entityname= (String) args.get(0);
-
+        if(args.size()>0) {
+            entityname = (String) args.get(0);
+        }else{
+            entityname=null;
+        }
     }
 
     @Override
@@ -32,8 +35,15 @@ public class FindEntityOrder extends AIOrderBase{
     @Override
     public void executeImpl() {
         //find nearby entity
-        var nearentities=entity.getLevel().getNearbyEntities(LivingEntity.class, TargetingConditions.forNonCombat(), entity,
-                entity.getBoundingBox().inflate(40));
+        List<LivingEntity> nearentities;
+        if(entityname==null)
+            //monster only
+            nearentities= entity.getLevel().getNearbyEntities(LivingEntity.class, TargetingConditions.forNonCombat(), entity,
+                    entity.getBoundingBox().inflate(40)).stream().filter(e->e instanceof net.minecraft.world.entity.monster.Monster).toList();
+        else
+            //filter
+            nearentities= entity.getLevel().getNearbyEntities(LivingEntity.class, TargetingConditions.forNonCombat(), entity,
+                    entity.getBoundingBox().inflate(40)).stream().filter(e->e.getDisplayName().getString().contains(entityname)).toList();
 
         if(nearentities.size()==0){
             //no entity found
@@ -41,27 +51,57 @@ public class FindEntityOrder extends AIOrderBase{
             return;
         }
         //pick first
-        var target=nearentities.stream().filter(e->e.getDisplayName().getString().contains(entityname)).findFirst().orElse(null);
+        var target=nearentities.stream().filter(e->e.getDisplayName().getString().contains(entityname)).toList();
 
-        if(target==null){
+        if(target.isEmpty()){
             //no entity found
             throw new RuntimeException("No entity found");
         }
-        //get target id
-        var targetid=target.getId();
+        var pos=entity.blockPosition();
+        //sort by distance
+        target.sort((a,b)->{
+            var apos=a.blockPosition();
+            var bpos=b.blockPosition();
+            var adist=apos.distSqr(pos);
+            var bdist=bpos.distSqr(pos);
+            return (int)(adist-bdist);
+        });
 
-        // reply
-        this.notifyAI("Target name:"+target.getDisplayName() +" id:"+targetid);
 
-        //store
-        val("id",targetid);
+        boolean omitted=false;
+        //spoil
+        if(target.size()>10){
+            target=target.subList(0,10);
+            omitted=true;
+        }
+        String message;
+        if (entityname==null){
+            message="Found "+target.size()+" entities (monster only):\n";
+        }else{
+            message ="Found "+target.size()+" entities:\n";
+        }
+
+        for(var t: target) {
+            //get target id
+            var targetid = t.getId();
+            var pos2=t.blockPosition();
+            // reply
+            message += "id:" + targetid + " name:" + t.getDisplayName().getString() + " pos:" + pos2.getX() + "," + pos2.getY() + "," + pos2.getZ() +" hp:"+t.getHealth()+"/"+t.getMaxHealth()+"\n";
+
+
+        }
+        if(omitted){
+            message+="(omitted)";
+        }
+
+        var firstTarget=target.get(0);
+        val("id", firstTarget.getId());
         //pos
-        val("x",target.getBlockX());
-        val("y",target.getBlockY());
-        val("z",target.getBlockZ());
+        val("x", firstTarget.getBlockX());
+        val("y", firstTarget.getBlockY());
+        val("z", firstTarget.getBlockZ());
 
-
-
+        this.notifyAI(message);
     }
 
 }
