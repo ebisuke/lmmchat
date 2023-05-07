@@ -29,7 +29,7 @@ public class Injector {
             goals.add(new jp.mochisuke.lmmchat.goal.BlockPlaceGoal<LittleMaidEntity>(entity));
             goals.add(new jp.mochisuke.lmmchat.goal.BlockInspectGoal<LittleMaidEntity>(entity));
             goals.add(new jp.mochisuke.lmmchat.goal.InteractGoal<LittleMaidEntity>(entity));
-            goals.add(new jp.mochisuke.lmmchat.goal.FortifyGoal<LittleMaidEntity>(entity));
+            //goals.add(new jp.mochisuke.lmmchat.goal.FortifyGoal<LittleMaidEntity>(entity));
             goals.add(new jp.mochisuke.lmmchat.goal.CraftingGoal<LittleMaidEntity>(entity));
 
             var operator=new jp.mochisuke.lmmchat.goal.AIOperationGoal<LittleMaidEntity>(entity);

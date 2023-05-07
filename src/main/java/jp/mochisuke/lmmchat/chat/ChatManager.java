@@ -80,7 +80,7 @@ public class ChatManager {
                                 String processedMessage="";
                                 for(int i=0;i<similarMessage.size();i++) {
                                     var elem=similarMessage.get(i);
-                                    if (similarMessage instanceof Function2<?, ?, ?>) {
+                                    if (elem instanceof Function2<?, ?, ?>) {
                                         processedMessage += ((Function2<String, ChatGenerationRequest, String>) elem).invoke(ret, chatData)+"\n";
                                     } else {
                                         processedMessage += (String) elem+"\n";

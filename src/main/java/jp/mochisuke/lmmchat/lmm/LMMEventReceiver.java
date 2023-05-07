@@ -98,7 +98,9 @@ public class LMMEventReceiver {
         var world=event.getLevel();
         var explosion=event.getExplosion();
         var exploder=explosion.getSourceMob();
-
+        if(exploder==null){
+            return;
+        }
         //find nearby maid
         var maidList=world.getEntitiesOfClass(TamableAnimal.class,
                 explosion.getExploder().getBoundingBox().inflate(10),

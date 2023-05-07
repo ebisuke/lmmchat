@@ -101,7 +101,6 @@ public class LMMChatConfig  {
 !findblock blockname: 指定された名前のブロックを検索します。変数x,y,zに座標が格納されます。
 !concentrate: 一定時間、短い間隔でプロンプトを送信します。戦闘や作業など細かいアクションを行う際に使います。
 !swap: メインとオフハンドのアイテムを切り替えます。
-!fortify true/false: ご主人様に近づき周囲にモンスターがいる間、守ります。省略した場合trueと同等です。
 !check item: アイテムを調べます。slotindexを指定しなかった場合はメインハンドを調べます。
 !wield item,to: アイテムを装備します。-1は無を表します。toはそれぞれmainhand,offhand,head,chest,legs,feetを指定できます。
 !craft craftitemname,count: アイテムをクラフトします。countは作る個数です。材料が不足する場合は、そのアイテムが列挙されます。近くに作業台が必要です。
@@ -166,7 +165,22 @@ redstone.setOutput(side,value): 指定した方向のレッドストーン信号
 
         config.save();
     }
-
+    public static void setModel(String modelname){
+        config.set("modelname", modelname);
+        config.save();
+    }
+    public static void setMaxTokens(int maxtokens){
+        config.set("maxtokens", maxtokens);
+        config.save();
+    }
+    public static void setEnableEmbedding(boolean enableembedding){
+        config.set("enableembedding", enableembedding);
+        config.save();
+    }
+    public static void setThresholdSimilarity(double thresholdembedding){
+        config.set("thresholdembedding", thresholdembedding);
+        config.save();
+    }
 
 
 }

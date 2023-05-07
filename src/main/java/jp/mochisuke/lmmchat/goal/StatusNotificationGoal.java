@@ -69,7 +69,7 @@ public class StatusNotificationGoal<T extends TamableAnimal> extends Goal {
 
                 String statusEffect="";
                 for(var effect:entity.getActiveEffects()){
-                    statusEffect+=effect.getEffect().getDescriptionId()+":"+effect.getAmplifier()+",";
+                    statusEffect+=effect.getEffect().getDescriptionId()+":"+(effect.getAmplifier()+1)+",";
                 }
                 if(statusEffect.length()>0){
                     statusEffect="effects:"+statusEffect.substring(0,statusEffect.length()-1);

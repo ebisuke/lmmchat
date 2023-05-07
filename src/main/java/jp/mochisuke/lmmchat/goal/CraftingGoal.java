@@ -105,7 +105,7 @@ public class CraftingGoal<T extends TamableAnimal> extends AIGoalBase {
 //            if(recipe.get().canCraftInDimensions(2,2)){
 //                instantCraft=true;
 //            }
-
+            navigateNearbyCraftingTable();
 
         }else{
             fail("recipe not found");
@@ -154,9 +154,13 @@ public class CraftingGoal<T extends TamableAnimal> extends AIGoalBase {
                 }
             }
         }
+        if(nearbyCraftingTable==null){
+            fail("crafting table not found");
+            return;
+        }
         //check crafting table is near or instantcraft?
         Vec3i entitypos=entity.blockPosition();
-        if(instantCraft || entitypos.closerThan(nearbyCraftingTable,4)){
+        if(instantCraft || (nearbyCraftingTable!=null &&  entitypos.closerThan(nearbyCraftingTable,4))){
             entity.getNavigation().stop();
             if(craftingProgress<40){
                 craftingProgress++;

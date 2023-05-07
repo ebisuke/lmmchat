@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import jp.mochisuke.lmmchat.chat.ChatGenerationRequest;
 import jp.mochisuke.lmmchat.chat.ChatManager;
 import jp.mochisuke.lmmchat.chat.ChatPreface;
+import jp.mochisuke.lmmchat.commands.CommandDispatcher;
 import jp.mochisuke.lmmchat.order.AIOrderDefinitions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.MinecraftServer;
@@ -119,6 +120,7 @@ public class LMMChat {
         LMMChatConfig.loadConfig();
         //load config
 
+
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -129,6 +131,8 @@ public class LMMChat {
         //generate chat thread
 
         server = event.getServer();
+        //register command
+        CommandDispatcher.registerCommands(event.getServer());
     }
     @SubscribeEvent
     public void onServerStarted(ServerStartedEvent event) {
@@ -142,6 +146,7 @@ public class LMMChat {
         var day= (getServerTime())/24000;
         return day;
     }
+
     public static MinecraftServer getServer(){
         return server;
     }
