@@ -142,6 +142,12 @@ public class CraftingGoal<T extends TamableAnimal> extends AIGoalBase {
         if(!canUse()){
             return;
         }
+        if(nearbyCraftingTable==null){
+            if(!navigateNearbyCraftingTable()){
+                fail("crafting table not found");
+                return;
+            }
+        }
         //check valid
         BlockState block;
         if(!instantCraft) {
