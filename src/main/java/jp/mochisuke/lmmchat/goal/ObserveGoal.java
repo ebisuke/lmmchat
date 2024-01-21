@@ -73,10 +73,10 @@ public class ObserveGoal<T extends PathfinderMob> extends AIGoalBase{
         if(entity.tickCount%20==0){
             entity.getNavigation().moveTo(x,y,z,1.0);
 
-            BlockState block=entity.level.getBlockState(new BlockPos(x,y,z));
+            BlockState block=entity.level().getBlockState(new BlockPos(x,y,z));
 
             //check maid can see block and near block
-            if(block.isAir() || !block.isPathfindable(entity.level, new BlockPos(x,y,z), PathComputationType.LAND)){
+            if(block.isAir() || !block.isPathfindable(entity.level(), new BlockPos(x,y,z), PathComputationType.LAND)){
                 fail("block is air or not pathfindable");
                 return;
             }
@@ -94,10 +94,9 @@ public class ObserveGoal<T extends PathfinderMob> extends AIGoalBase{
                     watchingBlockState=block;
                 }else {
                     //wait for change blockstate
-                    BlockState nowBlockState=entity.level.getBlockState(new BlockPos(x,y,z));
+                    BlockState nowBlockState=entity.level().getBlockState(new BlockPos(x,y,z));
                     if (!nowBlockState.equals(watchingBlockState)) {
                         success();
-                        return;
                     }
                 }
 

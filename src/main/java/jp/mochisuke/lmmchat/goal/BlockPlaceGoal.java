@@ -65,12 +65,12 @@ public class BlockPlaceGoal<T extends Mob> extends AIGoalBase {
         if(entity.distanceToSqr(x,y,z)<5.0){
             //place block
             BlockItem blockItem = (BlockItem) this.blockItem.getItem();
-            entity.level.setBlockAndUpdate(entity.blockPosition().offset(x,y,z),blockItem.getBlock().defaultBlockState());
+            entity.level().setBlockAndUpdate(entity.blockPosition().offset(x,y,z),blockItem.getBlock().defaultBlockState());
             //play sound
-            entity.level.playSound(null,entity.blockPosition().offset(x,y,z),
+            entity.level().playSound(null,entity.blockPosition().offset(x,y,z),
                     blockItem.getBlock().getSoundType(
 
-                            blockItem.getBlock().defaultBlockState(),entity.level,new BlockPos( x,y,z ),entity
+                            blockItem.getBlock().defaultBlockState(),entity.level(),new BlockPos( x,y,z ),entity
                     ).getPlaceSound(),entity.getSoundSource(),1.0f,1.0f);
             //swing hand
             entity.swing(InteractionHand.MAIN_HAND);

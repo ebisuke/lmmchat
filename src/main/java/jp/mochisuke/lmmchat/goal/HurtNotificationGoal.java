@@ -41,7 +41,7 @@ public class HurtNotificationGoal<T extends TamableAnimal> extends Goal {
 
                 String msg = String.format("あなたは%sから %.0f のダメージを受けました。残りHPは %.0f/%.0f です。 (%.0f%%)",
                         source!=null && source.getEntity()!=null ? source.getEntity().getDisplayName().getString():"不明な対象",
-                        damage  ,  (float) hp, entity.getMaxHealth(), (hp / entity.getMaxHealth() * 100));
+                        damage  , hp, entity.getMaxHealth(), (hp / entity.getMaxHealth() * 100));
                 LMMChat.addChatMessage(null, entity, true, false, msg, 0);
                 cooldown = 400;
             }

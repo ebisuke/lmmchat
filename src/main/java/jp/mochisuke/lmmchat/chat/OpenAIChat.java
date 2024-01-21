@@ -129,7 +129,7 @@ public class OpenAIChat implements IChatBase{
                 message,
 
                 //current minecraft timeofday
-                ent.getLevel().getGameTime(),
+                ent.level().getGameTime(),
                 req.getCaller(),
                 req.getCallee(),
                 req.isCallerIsSystem(),
@@ -157,9 +157,8 @@ public class OpenAIChat implements IChatBase{
         OpenAIChatData chatData = new OpenAIChatData(
                 req.getCallerMessage(),
                 ret,
-
                 //current minecraft timeofday
-                ent.getLevel().getGameTime(),
+                ent.level().getGameTime(),
                 req.getCaller(),
                 req.getCallee(),
                 req.isCallerIsSystem(),

@@ -61,14 +61,14 @@ public class InteractGoal<T extends TamableAnimal> extends AIGoalBase {
         //if arrived
         if(entity.distanceToSqr(x,y,z)<4.0){
             //interact
-            BlockState block=entity.getLevel().getBlockState(entity.blockPosition());
+            BlockState block=entity.level().getBlockState(entity.blockPosition());
             if(block.isAir()){
                 entity.getNavigation().stop();
                 fail("No block");
             }
             //use block
             Block b=block.getBlock();
-            Level level=entity.getLevel();
+            Level level=entity.level();
 
             //interact using r-click
 

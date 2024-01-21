@@ -3,12 +3,12 @@ package jp.mochisuke.lmmchat.chat;
 import net.minecraft.world.entity.LivingEntity;
 
 public class ChatGenerationRequest implements Cloneable{
-    private String callerMessage;
-    private LivingEntity caller;
-    private LivingEntity callee;
-    private long timestamp;
-    private int conversationCount;
-    private ChatPreface preface;
+    private final String callerMessage;
+    private final LivingEntity caller;
+    private final LivingEntity callee;
+    private final long timestamp;
+    private final int conversationCount;
+    private final IChatPreface preface;
 
     private boolean callerIsSystem = false;
     private boolean calleeIsSystem = false;
@@ -21,7 +21,7 @@ public class ChatGenerationRequest implements Cloneable{
 
 
     public ChatGenerationRequest(LivingEntity caller, LivingEntity callee, boolean callerIsSystem, boolean calleeIsSystem, String callerMessage,
-                                 long timestamp, int conversationCount , ChatPreface preface) {
+                                 long timestamp, int conversationCount , IChatPreface preface) {
         this.callerMessage = callerMessage;
         this.caller = caller;
         this.callee = callee;
@@ -56,7 +56,7 @@ public class ChatGenerationRequest implements Cloneable{
     public long getTimestamp() {
         return timestamp;
     }
-    public ChatPreface getPreface(){
+    public IChatPreface getPreface(){
         return preface;
     }
 

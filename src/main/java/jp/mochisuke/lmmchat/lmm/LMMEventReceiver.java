@@ -51,7 +51,7 @@ public class LMMEventReceiver {
         //check maid owner has hurted
         if(entity instanceof Player){
             //find nearby maids
-            var world=entity.level;
+            var world=entity.level();
             var pos=entity.blockPosition();
             var maids=world.getEntitiesOfClass(TamableAnimal.class, entity.getBoundingBox().inflate(50)  ,e->e.getClass().getName().contains("LittleMaidEntity"));
             for(var maid:maids){
@@ -97,7 +97,7 @@ public class LMMEventReceiver {
     public static void onExplodedEntity(net.minecraftforge.event.level.ExplosionEvent.Detonate event){
         var world=event.getLevel();
         var explosion=event.getExplosion();
-        var exploder=explosion.getSourceMob();
+        var exploder=explosion.getExploder();
         if(exploder==null){
             return;
         }
@@ -107,7 +107,7 @@ public class LMMEventReceiver {
                 entity1 -> entity1.getClass().getName().contains("LittleMaidEntity"));
         for(var maid:maidList){
             //get goal
-            EventNotificationGoal goal= (EventNotificationGoal) Helper.getGoal((TamableAnimal) maid, EventNotificationGoal.class);
+            EventNotificationGoal goal= (EventNotificationGoal) Helper.getGoal(maid, EventNotificationGoal.class);
             if(goal!=null){
                 goal.onExplodedEntity(event);
             }
@@ -117,14 +117,14 @@ public class LMMEventReceiver {
     @SubscribeEvent
     public static void onFishedItem(net.minecraftforge.event.entity.player.ItemFishedEvent event){
         var player=event.getEntity();
-        var world=player.level;
+        var world=player.level();
         var pos=player.blockPosition();
         var maidList=world.getEntitiesOfClass(TamableAnimal.class,
                 player.getBoundingBox().inflate(10),
                 entity1 -> entity1.getClass().getName().contains("LittleMaidEntity"));
         for(var maid:maidList){
             //get goal
-            EventNotificationGoal goal= (EventNotificationGoal) Helper.getGoal((TamableAnimal) maid, EventNotificationGoal.class);
+            EventNotificationGoal goal= (EventNotificationGoal) Helper.getGoal(maid, EventNotificationGoal.class);
             if(goal!=null){
                 goal.onPlayerFishedItem(event);
             }
@@ -134,7 +134,7 @@ public class LMMEventReceiver {
     @SubscribeEvent
     public static void onEnderManAngered(net.minecraftforge.event.entity.living.EnderManAngerEvent event){
         var enderman=event.getEntity();
-        var world=enderman.level;
+        var world=enderman.level();
         var pos=enderman.blockPosition();
         var maidList=world.getEntitiesOfClass(TamableAnimal.class,
                 enderman.getBoundingBox().inflate(10),
@@ -148,7 +148,7 @@ public class LMMEventReceiver {
 
             //get goal
 
-            EventNotificationGoal goal= (EventNotificationGoal) Helper.getGoal((TamableAnimal) maid, EventNotificationGoal.class);
+            EventNotificationGoal goal= (EventNotificationGoal) Helper.getGoal(maid, EventNotificationGoal.class);
             if(goal!=null){
                 goal.onEnderManAngered(event);
             }
@@ -160,11 +160,11 @@ public class LMMEventReceiver {
         var world=event.getLevel();
         var pos=event.getAttemptedSpawnPos();
         var maidList=world.getEntitiesOfClass(TamableAnimal.class,
-                new net.minecraft.world.phys.AABB(new BlockPos(pos.x,pos.y,pos.z)).inflate(150),
+                new net.minecraft.world.phys.AABB(new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)).inflate(150),
                 entity1 -> entity1.getClass().getName().contains("LittleMaidEntity"));
         for(var maid:maidList){
             //get goal
-            EventNotificationGoal goal= (EventNotificationGoal) Helper.getGoal((TamableAnimal) maid, EventNotificationGoal.class);
+            EventNotificationGoal goal= (EventNotificationGoal) Helper.getGoal(maid, EventNotificationGoal.class);
             if(goal!=null){
                 goal.onVillageSieged(event);
             }
@@ -180,7 +180,7 @@ public class LMMEventReceiver {
                 entity1 -> entity1.getClass().getName().contains("LittleMaidEntity"));
         for(var maid:maidList){
             //get goal
-            EventNotificationGoal goal= (EventNotificationGoal) Helper.getGoal((TamableAnimal) maid, EventNotificationGoal.class);
+            EventNotificationGoal goal= (EventNotificationGoal) Helper.getGoal(maid, EventNotificationGoal.class);
             if(goal!=null){
                 goal.onZombieAid(event);
             }

@@ -18,7 +18,7 @@ public class EventNotificationGoal<T extends TamableAnimal> extends AIGoalBase{
 
     private HashMap<String,Integer> itemMap ;
 
-    private ArrayList<String> eventList = new ArrayList<>();
+    private final ArrayList<String> eventList = new ArrayList<>();
     private final int eventLimit=32;
     private int eventTimer=0;
     private int cooldown;
@@ -185,7 +185,7 @@ public class EventNotificationGoal<T extends TamableAnimal> extends AIGoalBase{
         }
     }
     public void onPlayerFishedItem(net.minecraftforge.event.entity.player.ItemFishedEvent event){
-        addEvent(""+event.getEntity().getDisplayName().getString()+" fished "+event.getDrops().get(0).getDisplayName().getString()+".\n");
+        addEvent(event.getEntity().getDisplayName().getString()+" fished "+event.getDrops().get(0).getDisplayName().getString()+".\n");
     }
 
 

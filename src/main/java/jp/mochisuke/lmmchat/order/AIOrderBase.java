@@ -3,14 +3,12 @@ package jp.mochisuke.lmmchat.order;
 import com.mojang.logging.LogUtils;
 import jp.mochisuke.lmmchat.LMMChat;
 import jp.mochisuke.lmmchat.LMMChatConfig;
-import jp.mochisuke.lmmchat.chat.ChatData;
-import jp.mochisuke.lmmchat.chat.ChatGenerationCallback;
-import jp.mochisuke.lmmchat.chat.ChatGenerationRequest;
-import jp.mochisuke.lmmchat.chat.ChatPreface;
+import jp.mochisuke.lmmchat.chat.*;
 import jp.mochisuke.lmmchat.goal.AIGoalBase;
 import jp.mochisuke.lmmchat.goal.AIOperationGoal;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.TamableAnimal;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -58,13 +56,13 @@ public abstract class AIOrderBase implements ChatGenerationCallback,AIGoalBase.C
         if(ret instanceof Double){
             return String.valueOf (ret);
         }else if(ret instanceof Integer){
-            return String.valueOf ((Integer)ret);
+            return String.valueOf (ret);
         }
 
         throw new IllegalArgumentException("not number:"+o);
     }
     protected void val(String o,double value){
-        context.setVar(o,(double)value);
+        context.setVar(o, value);
     }
 
 
@@ -74,11 +72,7 @@ public abstract class AIOrderBase implements ChatGenerationCallback,AIGoalBase.C
     public boolean execute(){
         startUp(entity,context,args);
         executeImpl();
-        if(isImmediate()) {
-            return true;
-        }else{
-            return false;
-        }
+        return isImmediate();
     }
     protected abstract void executeImpl();
 
@@ -99,7 +93,7 @@ public abstract class AIOrderBase implements ChatGenerationCallback,AIGoalBase.C
             logger.debug("AIOrderBase.notifyAI:intermediate order. skip notifyAI");
             return;
         }
-        ChatPreface preface = new ChatPreface(LMMChatConfig.getPreface());
+        IChatPreface preface = new VariableChatPreface(LMMChatConfig.getPreface(),((TamableAnimal)entity).getOwner(),null,entity);
         var req=new ChatGenerationRequest(null,entity,true,false,message,
                 LMMChat.getServerTime(),0, preface);
         req.setCallback(this);

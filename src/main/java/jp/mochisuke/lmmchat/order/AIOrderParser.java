@@ -6,9 +6,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import org.slf4j.Logger;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Vector;
+import java.util.*;
 
 public class AIOrderParser {
     static final Logger logger = LogUtils.getLogger();
@@ -108,7 +106,7 @@ public class AIOrderParser {
                     argsString += ",";
                 }
             }
-            String[] args = argsString.split(",");
+            Object[] args = argsString.split(",");
             //replace @s to owner id
 
 
@@ -125,9 +123,9 @@ public class AIOrderParser {
                 }
 
             }
-
+            List<Object> l=Arrays.asList(args);
             //create order
-            var ret=AIOrderDefinitions.createOrder(sender,orderName,context, List.of((Object[]) args));
+            var ret=AIOrderDefinitions.createOrder(sender,orderName,context, l);
             if(ret!=null){
                 parsed.add(ret);
             }

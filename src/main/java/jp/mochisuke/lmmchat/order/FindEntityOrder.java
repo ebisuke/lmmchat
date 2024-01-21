@@ -38,11 +38,11 @@ public class FindEntityOrder extends AIOrderBase{
         List<LivingEntity> nearentities;
         if(entityname==null)
             //monster only
-            nearentities= entity.getLevel().getNearbyEntities(LivingEntity.class, TargetingConditions.forNonCombat(), entity,
+            nearentities= entity.level().getNearbyEntities(LivingEntity.class, TargetingConditions.forNonCombat(), entity,
                     entity.getBoundingBox().inflate(40)).stream().filter(e->e instanceof net.minecraft.world.entity.monster.Monster).toList();
         else
             //filter
-            nearentities= entity.getLevel().getNearbyEntities(LivingEntity.class, TargetingConditions.forNonCombat(), entity,
+            nearentities= entity.level().getNearbyEntities(LivingEntity.class, TargetingConditions.forNonCombat(), entity,
                     entity.getBoundingBox().inflate(40)).stream().filter(e->e.getDisplayName().getString().contains(entityname)).toList();
 
         if(nearentities.size()==0){

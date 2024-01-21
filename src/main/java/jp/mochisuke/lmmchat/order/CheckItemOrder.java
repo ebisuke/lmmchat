@@ -58,7 +58,7 @@ public class CheckItemOrder extends AIOrderBase{
         }
         //item kind
         message+="Item kind:"+item.getItem().getClass().getName()+"\n";
-        message+="Enchantments:"+item.getEnchantmentTags().toString();
+        message+="Enchantments:"+ item.getEnchantmentTags();
         notifyAI(message);
 
     }

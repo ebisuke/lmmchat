@@ -4,11 +4,11 @@ import com.mojang.logging.LogUtils;
 import jp.mochisuke.lmmchat.LMMChatConfig;
 import jp.mochisuke.lmmchat.embedding.EmbeddingTask;
 import jp.mochisuke.lmmchat.embedding.OpenAIEmbedder;
-import kotlin.jvm.functions.Function2;
 import org.slf4j.Logger;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 
 public class ChatManager {
     Thread thread;
@@ -21,7 +21,7 @@ public class ChatManager {
     boolean isEnabled = true;
     public ChatManager() {
         thread = new Thread(this::routine);
-        chatContoller = new OpenAIChat();
+        chatContoller = ChatFactory.createChatBase();
         chatDataQueue = new java.util.concurrent.ConcurrentLinkedQueue<>();
         chatGenerationRequestQueue = new java.util.concurrent.ConcurrentLinkedQueue<>();
         chatHistory = new ConcurrentHashMap<>();
@@ -30,9 +30,17 @@ public class ChatManager {
     }
     public void disable(){
         //clear all chat queue
+        chatContoller = ChatFactory.createChatBase();
         chatDataQueue.clear();
         chatGenerationRequestQueue.clear();
         isEnabled=false;
+    }
+    public void clearAll(){
+        //clear all chat queue
+        chatContoller = ChatFactory.createChatBase();
+        chatDataQueue.clear();
+        chatGenerationRequestQueue.clear();
+        chatHistory.clear();
     }
     public void enable(){
         isEnabled=true;
@@ -80,10 +88,10 @@ public class ChatManager {
                                 String processedMessage="";
                                 for(int i=0;i<similarMessage.size();i++) {
                                     var elem=similarMessage.get(i);
-                                    if (elem instanceof Function2<?, ?, ?>) {
-                                        processedMessage += ((Function2<String, ChatGenerationRequest, String>) elem).invoke(ret, chatData)+"\n";
+                                    if (elem instanceof BiFunction<?,?,?>) {
+                                        processedMessage += ((BiFunction<String, ChatGenerationRequest, String>) elem).apply(ret, chatData)+"\n";
                                     } else {
-                                        processedMessage += (String) elem+"\n";
+                                        processedMessage += elem +"\n";
                                     }
                                 }
                                 processedMessage=processedMessage.trim();

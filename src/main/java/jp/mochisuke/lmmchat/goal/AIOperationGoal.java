@@ -4,9 +4,11 @@ import com.mojang.logging.LogUtils;
 import jp.mochisuke.lmmchat.LMMChat;
 import jp.mochisuke.lmmchat.LMMChatConfig;
 import jp.mochisuke.lmmchat.chat.ChatGenerationRequest;
-import jp.mochisuke.lmmchat.chat.ChatPreface;
+import jp.mochisuke.lmmchat.chat.IChatPreface;
+import jp.mochisuke.lmmchat.chat.VariableChatPreface;
 import jp.mochisuke.lmmchat.order.AIOrderBase;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.goal.Goal;
 import org.slf4j.Logger;
 
@@ -17,7 +19,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class AIOperationGoal  <T extends Mob>  extends Goal implements AIGoalBase.Callback {
     static final Logger logger= LogUtils.getLogger();
     protected final T entity;
-    private Queue<AIOrderBase> orders;
+    private final Queue<AIOrderBase> orders;
     private AIOrderBase currentOrder=null;
     public AIOperationGoal(T entity) {
         this.entity = entity;
@@ -75,7 +77,7 @@ public class AIOperationGoal  <T extends Mob>  extends Goal implements AIGoalBas
         orders.clear();
         //notify ai
         logger.info("AIOperationGoal.onFailed:"+reason);
-        ChatPreface preface = new ChatPreface(LMMChatConfig.getPreface());
+        IChatPreface preface = new VariableChatPreface(LMMChatConfig.getPreface(),((TamableAnimal)entity).getOwner(),null,entity);
         var req=new ChatGenerationRequest(null,entity,true,false,reason,
                 LMMChat.getServerTime()
                 ,0, preface);

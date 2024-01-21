@@ -74,7 +74,7 @@ public class FortifyGoal<T extends TamableAnimal> extends AIGoalBase {
                 return;
             }
             //check nearby enemies
-            Level level=entity.level;
+            Level level=entity.level();
             if(level.getNearbyEntities(Monster.class, TargetingConditions.forCombat(),entity, entity.getBoundingBox().inflate(20.0)).size()>0){
                 //reset timer
                 remainingTime=initialRemainingTime;

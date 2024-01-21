@@ -8,10 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 
 public class EmbeddingDictionary {
-    private HashMap<EmbeddingAnswer,List<Double>> reversedDictionary = new HashMap<EmbeddingAnswer, List<Double>>();
-    private HashMap<List<Double>,EmbeddingAnswer> dictionary = new HashMap<List<Double>, EmbeddingAnswer>();
+    private final HashMap<EmbeddingAnswer,List<Double>> reversedDictionary = new HashMap<EmbeddingAnswer, List<Double>>();
+    private final HashMap<List<Double>,EmbeddingAnswer> dictionary = new HashMap<List<Double>, EmbeddingAnswer>();
 
-    private HashMap<String, EmbeddingQuestion> questions = new HashMap<String, EmbeddingQuestion>();
+    private final HashMap<String, EmbeddingQuestion> questions = new HashMap<String, EmbeddingQuestion>();
     public EmbeddingDictionary(){
 
     }
@@ -56,7 +56,7 @@ public class EmbeddingDictionary {
                 norm1 += v.get(i) * v.get(i);
                 norm2 += vector.get(i) * vector.get(i);
             }
-            double norm = (double) Math.sqrt(norm1) * (double) Math.sqrt(norm2);
+            double norm = Math.sqrt(norm1) * Math.sqrt(norm2);
             double cos = dot / norm;
             if (cos >= threshold){
                 list.add(new Tuple<Double, EmbeddingAnswer>(cos,entry.getValue()));

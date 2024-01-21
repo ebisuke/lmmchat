@@ -57,7 +57,7 @@ public class RandomTalkGoal<T extends TamableAnimal> extends Goal {
 
 
 
-                cooldown= (long) LMMChatConfig.getRandomTalkCooldown();
+                cooldown= LMMChatConfig.getRandomTalkCooldown();
             }
         }
     }

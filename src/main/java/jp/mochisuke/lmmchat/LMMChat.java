@@ -1,9 +1,7 @@
 package jp.mochisuke.lmmchat;
 
 import com.mojang.logging.LogUtils;
-import jp.mochisuke.lmmchat.chat.ChatGenerationRequest;
-import jp.mochisuke.lmmchat.chat.ChatManager;
-import jp.mochisuke.lmmchat.chat.ChatPreface;
+import jp.mochisuke.lmmchat.chat.*;
 import jp.mochisuke.lmmchat.commands.CommandDispatcher;
 import jp.mochisuke.lmmchat.order.AIOrderDefinitions;
 import net.minecraft.client.Minecraft;
@@ -11,12 +9,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.Material;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStartedEvent;
@@ -30,7 +24,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
@@ -53,9 +46,7 @@ public class LMMChat {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
 
     // Creates a new Block with the id "LMMChat:example_block", combining the namespace and path
-    public static final RegistryObject<Block> EXAMPLE_BLOCK = BLOCKS.register("example_block", () -> new Block(BlockBehaviour.Properties.of(Material.STONE)));
     // Creates a new BlockItem with the id "LMMChat:example_block", combining the namespace and path
-    public static final RegistryObject<Item> EXAMPLE_BLOCK_ITEM = ITEMS.register("example_block", () -> new BlockItem(EXAMPLE_BLOCK.get(), new Item.Properties().tab(CreativeModeTab.TAB_BUILDING_BLOCKS)));
     private static MinecraftServer server;
     public static void addChatMessage(@Nullable LivingEntity caller,@Nullable LivingEntity callee, boolean callerIsAssistant,
                                       boolean calleeIsAssistant, String callerMessage, int conversationCount){
@@ -67,32 +58,38 @@ public class LMMChat {
         if(caller!=null) {
             // check callee is friendly to caller
 
-            if (callee instanceof TamableAnimal) {
-                TamableAnimal animal = (TamableAnimal) callee;
+            if (callee instanceof TamableAnimal animal) {
                 if (animal.isTame() && animal.isOwnedBy(caller)) {
                     friendly = true;
                 }
             }
         }else{
 
-            if (callee instanceof TamableAnimal) {
-                TamableAnimal animal = (TamableAnimal) callee;
+            if (callee instanceof TamableAnimal animal) {
                 if (animal.isTame() ) {
                     friendly = true;
                 }
             }
         }
-        ChatPreface preface;
+
+        IChatPreface preface;
+        LivingEntity owner=null;
+        if (callee instanceof TamableAnimal animal) {
+            if (animal.isTame() ) {
+                owner=animal.getOwner();
+            }
+        }
         if(!friendly){
-            preface=new ChatPreface(LMMChatConfig.getNeutralPreface());
+            preface=new VariableChatPreface(LMMChatConfig.getNeutralPreface(),owner,caller,callee);
         }else{
-            preface=new ChatPreface(LMMChatConfig.getPreface());
+            preface=new VariableChatPreface(LMMChatConfig.getPreface(),owner,caller,callee);
         }
 
 
         ChatGenerationRequest request = new ChatGenerationRequest(caller,callee,callerIsAssistant,
-                calleeIsAssistant,callerMessage,caller!=null?caller.getLevel().getGameTime():callee.getLevel().getGameTime(),conversationCount,preface);
+                calleeIsAssistant,callerMessage,caller!=null?caller.level().getGameTime():callee.level().getGameTime(),conversationCount,preface);
         chatManager.PushRequest(request);
+
     }
     public LMMChat() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();

@@ -24,7 +24,7 @@ public class ChatData implements Cloneable{
         this.callerIsSystem = callerIsSystem;
         this.calleeIsSystem = calleeIsSystem;
         //gerenate id
-        this.id  = String.valueOf(caller!=null?caller.getId():-1) + ":"+String.valueOf(caller!=null?callee.getId():-1) +":"+ timestamp;
+        this.id  = (caller != null ? caller.getId() : -1) + ":"+ (caller != null ? callee.getId() : -1) +":"+ timestamp;
         this.timestamp = timestamp;
         this.caller = caller;
         this.callee = callee;

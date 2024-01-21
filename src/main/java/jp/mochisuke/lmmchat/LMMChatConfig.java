@@ -2,13 +2,25 @@ package jp.mochisuke.lmmchat;
 
 import com.electronwill.nightconfig.core.file.FileConfig;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 //configurations class for forge
 public class LMMChatConfig  {
-
+    public enum Engine{
+        OPENAI,
+        GEMINI
+    }
     public static FileConfig config;
-
+    public static String preface;
     public static String getApiKey(){
         return config.get("apikey");
+    }
+    public static String getGeminiApiKey(){
+        return config.get("geminiapikey");
     }
     public static String getModelName(){
         return config.get("modelname");
@@ -18,7 +30,14 @@ public class LMMChatConfig  {
     }
 
     public static String getPreface(){
-        return config.get("preface");
+        return preface;
+    }
+    public static Engine getEngine(){
+        return Engine.valueOf(config.get("engine"));
+    }
+    public static void setEngine(Engine engine){
+        config.set("engine", engine.toString());
+        config.save();
     }
     public static String getComputerCraftPreface(){
         return config.get("computercraftpreface");
@@ -77,13 +96,12 @@ public class LMMChatConfig  {
         // load from file
         config= FileConfig.of("config/lmmchat.toml");
 
-
         config.load();
 
         var default_prompt= """
 あなたはメイドさんです。あなたはご主人様に奉仕します。
 あなたはマインクラフトのキャラクターです。あなたは少女で語尾が「にゃ」かつタメ口で話します。あなたはどのような場合でも日本語を話します。
-あなたは返答の先頭に@を付けることで、距離問わずご主人様とあなたの間で会話できます。
+あなたは返答の先頭に@を付け、その後に相手のIDを入れることで距離問わずご主人様とあなたの間で会話できます。
 あなたはブロックの場所や必要なものなどの検索は極力自分で行い、ブロックに対し操作する場合、事前に場所を探します。
 あなたはマウスやキーボードなどのインタフェースを持っていませんが、コマンドを使用することで、様々な操作ができます。
 あなたは各行の先頭に!を付けることでコマンドを指示できます。
@@ -105,7 +123,10 @@ public class LMMChatConfig  {
 !wield item,to: アイテムを装備します。-1は無を表します。toはそれぞれmainhand,offhand,head,chest,legs,feetを指定できます。
 !craft craftitemname,count: アイテムをクラフトします。countは作る個数です。材料が不足する場合は、そのアイテムが列挙されます。近くに作業台が必要です。
 !healowner: ご主人様を回復するコマンドです。回復は食料を使用し、HPが半分以下ならさらにポーション・金リンゴを使用します。ご主人様のおなかが空いていたら使ってあげてください。
-!emerg: ご主人様の近くへ瞬時に移動します。砂糖を30個とHPを5消費します。不足している場合はさらにHPを消費しますが0以下にはなりません。HPが5以下だと使用できません。
+!emerg: 緊急でご主人様の近くへ瞬時に移動します。HPを5消費します。所持している砂糖が30個未満なら不足している場合はさらにHPを消費しますが0以下にはなりません。HPが5以下だと使用できません。
+# 基本情報
+オーナーのIDは{ownerid}です。話しかけた人のIDは{callerid}です。あなたのIDは{maidid}です。
+オーナーの名前は{ownername}です。話しかけた人の名前は{callerid}です。あなたの名前は{maidname}です。
 """;
         var defualt_computercraft_prompt= """
 あなたはメイドさんです。あなたはご主人様に奉仕します。あなたはComputerCraftモードです。
@@ -123,6 +144,7 @@ turtle.back(): 1ブロック後ろに戻ります。
 turtle.select(slotindex): スロットを選択します。
 turtle.refuel(count): 燃料を補給します。countは補給する個数です。
 redstone.setOutput(side,value): 指定した方向のレッドストーン信号を出力します。valueはtrue/falseです。
+
 """;
 
 
@@ -135,9 +157,38 @@ redstone.setOutput(side,value): 指定した方向のレッドストーン信号
 
         // set default values
         if (!config.contains("apikey")) config.add("apikey", "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        if (!config.contains("geminiapikey")) config.add("geminiapikey", "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
         if (!config.contains("apitimeout")) config.add("apitimeout", 30000);
         if (!config.contains("modelname")) config.add("modelname", "gpt-3.5-turbo");
-        if (!config.contains("preface")) config.add("preface", default_prompt);
+        if (!config.contains("engine")) config.add("engine", "OPENAI");
+        //if (!config.contains("preface")) config.add("preface", default_prompt);
+        // load from lmmchat_preface.txt
+        var file=new File("config/lmmchat_preface.txt");
+        if(file.exists()){
+            try (var reader = new FileReader(file, StandardCharsets.UTF_8)) {
+                var buffer = new char[(int) file.length()];
+                reader.read(buffer);
+                preface=new String(buffer);
+                //trim NUL
+                preface=preface.replaceAll("\u0000", "");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }else{
+            preface=default_prompt;
+            //save default
+            var file2=new File("config/lmmchat_preface.txt");
+
+            try (var writer = new FileWriter(file2, StandardCharsets.UTF_8)) {
+
+                //utf-8
+                writer.write(default_prompt);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+
 
         if (!config.contains("neutralpreface")) config.add("neutralpreface", default_neutral_prompt);
         if (!config.contains("computercraftpreface")) config.add("computercraftpreface", defualt_computercraft_prompt);
@@ -183,4 +234,7 @@ redstone.setOutput(side,value): 指定した方向のレッドストーン信号
     }
 
 
+    public static void reload() {
+        loadConfig();
+    }
 }

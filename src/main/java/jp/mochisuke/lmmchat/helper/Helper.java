@@ -2,6 +2,7 @@ package jp.mochisuke.lmmchat.helper;
 
 import jp.mochisuke.lmmchat.LMMChat;
 import jp.mochisuke.lmmchat.goal.AIGoalBase;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
@@ -19,8 +20,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class Helper {
+
+    public static Supplier<Component> wrapSupplier(Component supplier){
+        Supplier<Component> componentSupplier=()->{
+            try {
+                return supplier;
+            }catch (Exception e){
+                return Component.nullToEmpty(e.getMessage());
+            }
+        };
+        return componentSupplier;
+    }
     public static Container getInventoryContainer(Entity entity){
         //use reflection
         var fields=entity.getClass().getDeclaredFields();
@@ -164,10 +177,10 @@ public class Helper {
             if(s.isEmpty()){
                 inventory.setItem(i,stack);
                 return true;
-            }else if(s.sameItem(stack) && s.getCount()+stack.getCount()<=s.getMaxStackSize()){
+            }else if(ItemStack.isSameItem(s,stack) && s.getCount()+stack.getCount()<=s.getMaxStackSize()){
                 s.setCount(s.getCount()+stack.getCount());
                 return true;
-            }else if(s.sameItem(stack) && s.getCount()+stack.getCount()>s.getMaxStackSize()){
+            }else if(ItemStack.isSameItem(s,stack) && s.getCount()+stack.getCount()>s.getMaxStackSize()){
                 var newStack=stack.copy();
                 newStack.setCount(s.getCount()+stack.getCount()-s.getMaxStackSize());
                 s.setCount(s.getMaxStackSize());

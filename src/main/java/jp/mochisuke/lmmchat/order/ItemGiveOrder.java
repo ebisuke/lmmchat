@@ -64,7 +64,7 @@ public class ItemGiveOrder extends AIOrderBase{
         }
         int targetIdInt = Integer.parseInt(targetid);
         if (Objects.equals(itemname, "-")) {
-            var target = (LivingEntity) entity.getLevel().getEntity(targetIdInt);
+            var target = (LivingEntity) entity.level().getEntity(targetIdInt);
             Mob mob = (Mob) entity;
             mob.goalSelector.getAvailableGoals().stream().filter(g -> g.getGoal() instanceof GiveItemGoal).findFirst().ifPresent(g -> {
                 ((GiveItemGoal) g.getGoal()).setup(target, null, itemcount);
@@ -80,7 +80,7 @@ public class ItemGiveOrder extends AIOrderBase{
 
             final ItemStack stack2 = stack.get();
             //entity id to entity
-            var target = (LivingEntity) entity.getLevel().getEntity(targetIdInt);
+            var target = (LivingEntity) entity.level().getEntity(targetIdInt);
             Mob mob = (Mob) entity;
             mob.goalSelector.getAvailableGoals().stream().filter(g -> g.getGoal() instanceof GiveItemGoal).findFirst().ifPresent(g -> {
                 ((GiveItemGoal) g.getGoal()).setup(target, stack2, itemcount);

@@ -33,7 +33,7 @@ public class BlockItemPickupGoal<T extends PathfinderMob & HasInventory> extends
 
     public void setup(int x, int y, int z, ItemStack wantsItemStack, int minslotindex, int maxslotindex) {
 
-        this.blockEntity = (BaseContainerBlockEntity) this.entity.level.getBlockEntity(new BlockPos(x,y,z));
+        this.blockEntity = (BaseContainerBlockEntity) this.entity.level().getBlockEntity(new BlockPos(x,y,z));
         //null or air
         if(this.blockEntity==null || this.blockEntity.getBlockState().isAir()) {
             fail("block not found");

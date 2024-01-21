@@ -48,7 +48,7 @@ public class BlockInspectGoal<T extends PathfinderMob > extends AIGoalBase {
         pathFindingRetry=0;
     }
     public void setup(int x, int y, int z) {
-        this.blockEntity = (BaseContainerBlockEntity) this.entity.level.getBlockEntity(new BlockPos(x,y,z));
+        this.blockEntity = (BaseContainerBlockEntity) this.entity.level().getBlockEntity(new BlockPos(x,y,z));
         if(this.blockEntity==null) {
             fail("no such block");
             return;

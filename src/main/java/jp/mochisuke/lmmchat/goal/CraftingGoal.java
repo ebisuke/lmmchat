@@ -3,12 +3,14 @@ package jp.mochisuke.lmmchat.goal;
 import jp.mochisuke.lmmchat.helper.Helper;
 import jp.mochisuke.lmmchat.lmm.PseudoPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -88,13 +90,14 @@ public class CraftingGoal<T extends TamableAnimal> extends AIGoalBase {
         var itemStack=new ItemStack(targetItem);
 
         //get all recipe
-        var recipeManager=entity.level.getRecipeManager();
+        var recipeManager=entity.level().getRecipeManager();
         var allRecipes=recipeManager.getRecipes();
         //filter recipe by shaped or shapeless
         var filtered=allRecipes.stream().filter(recipe -> recipe.getType()== RecipeType.CRAFTING);
 
         //find recipe can craft target item
-        var recipe=filtered.filter(r -> r.getResultItem().is(itemStack.getItem())).findFirst();
+        RegistryAccess registryAccess=entity.level().registryAccess();
+        var recipe=filtered.filter(r -> r.getResultItem(registryAccess).is(itemStack.getItem())).findFirst();
         //found?
 
         if(recipe.isPresent()) {
@@ -121,7 +124,7 @@ public class CraftingGoal<T extends TamableAnimal> extends AIGoalBase {
         for(int i=0;i<range;i++){
             for(int j=0;j<range;j++){
                 for(int k=0;k<range;k++){
-                    if(entity.level.getBlockState(new BlockPos(x+i,y+j,z+k)).getBlock() == Blocks.CRAFTING_TABLE){
+                    if(entity.level().getBlockState(new BlockPos(x+i,y+j,z+k)).getBlock() == Blocks.CRAFTING_TABLE){
                         Vec3i pos=new Vec3i(x+i,y+j,z+k);
                         if(nearest==null&&pos.closerThan(entity.blockPosition(),range)) {
                             nearest = pos;
@@ -151,7 +154,7 @@ public class CraftingGoal<T extends TamableAnimal> extends AIGoalBase {
         //check valid
         BlockState block;
         if(!instantCraft) {
-            block = entity.getLevel().getBlockState(new BlockPos(nearbyCraftingTable.getX(), nearbyCraftingTable.getY(), nearbyCraftingTable.getZ()));
+            block = entity.level().getBlockState(new BlockPos(nearbyCraftingTable.getX(), nearbyCraftingTable.getY(), nearbyCraftingTable.getZ()));
 
             if (!block.is(Blocks.CRAFTING_TABLE)) {
                 if (!navigateNearbyCraftingTable()) {
@@ -170,14 +173,13 @@ public class CraftingGoal<T extends TamableAnimal> extends AIGoalBase {
             entity.getNavigation().stop();
             if(craftingProgress<40){
                 craftingProgress++;
-                return;
             }else {
                 Container inventory = Helper.getInventoryContainer(entity);
                 //check craftable by recipe
-                var manager = entity.getLevel().getRecipeManager();
+                var manager = entity.level().getRecipeManager();
 
                 //get crafting table
-                var craftingTable = entity.getLevel().getBlockEntity(new BlockPos(nearbyCraftingTable.getX(), nearbyCraftingTable.getY(), nearbyCraftingTable.getZ()));
+                var craftingTable = entity.level().getBlockEntity(new BlockPos(nearbyCraftingTable.getX(), nearbyCraftingTable.getY(), nearbyCraftingTable.getZ()));
                 //found?
                 if (craftingTable == null) {
                     fail("crafting table not found or already destroyed");
@@ -186,8 +188,8 @@ public class CraftingGoal<T extends TamableAnimal> extends AIGoalBase {
                 CraftingTableBlock ccontainer = (CraftingTableBlock) craftingTable.getBlockState().getBlock();
                 //get menu provider
 
-                PseudoPlayer pseudoPlayer = new PseudoPlayer(entity.getLevel(), new BlockPos(nearbyCraftingTable.getX(), nearbyCraftingTable.getY(), nearbyCraftingTable.getZ()));
-                var menuProvider = ccontainer.getMenuProvider(craftingTable.getBlockState(), entity.getLevel(),
+                PseudoPlayer pseudoPlayer = new PseudoPlayer(entity.level(), new BlockPos(nearbyCraftingTable.getX(), nearbyCraftingTable.getY(), nearbyCraftingTable.getZ()));
+                var menuProvider = ccontainer.getMenuProvider(craftingTable.getBlockState(), entity.level(),
                         new BlockPos(nearbyCraftingTable.getX(), nearbyCraftingTable.getY(), nearbyCraftingTable.getZ())
                 );
 
@@ -195,7 +197,7 @@ public class CraftingGoal<T extends TamableAnimal> extends AIGoalBase {
                 //check recipe
 
                 //prepare crafting grid
-                CraftingContainer craftingContainer = new CraftingContainer(menu, 3, 3);
+                CraftingContainer craftingContainer = new TransientCraftingContainer(menu, 3,3);
                 var ingredients = recipe.getIngredients();
                 var maidcontainer = Helper.getInventoryContainer(entity);
                 //swing
@@ -217,8 +219,9 @@ public class CraftingGoal<T extends TamableAnimal> extends AIGoalBase {
                             }
                         }
                     }
+                    RegistryAccess registryAccess=entity.level().registryAccess();
                     //attempt to assemble
-                    var result = recipe.assemble(craftingContainer);
+                    var result = recipe.assemble(craftingContainer,registryAccess);
                     if (result.isEmpty()) {
                         //restore maid inventory
                         for (int i = 0; i < 9; i++) {

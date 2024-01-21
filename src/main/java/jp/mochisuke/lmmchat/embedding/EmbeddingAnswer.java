@@ -3,8 +3,8 @@ package jp.mochisuke.lmmchat.embedding;
 import org.antlr.v4.misc.Utils;
 
 public class EmbeddingAnswer implements Cloneable {
-    private Object answer;
-    private Object[] args;
+    private final Object answer;
+    private final Object[] args;
 
     public EmbeddingAnswer(Object answer,Object[] args){
         this.answer = answer;

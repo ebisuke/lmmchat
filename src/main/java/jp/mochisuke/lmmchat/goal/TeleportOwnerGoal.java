@@ -77,18 +77,18 @@ public class TeleportOwnerGoal<T extends TamableAnimal> extends AIGoalBase{
                 fail("not enough health");
                 return;
             }
-            DamageSource damageSource = DamageSource.MAGIC;
+            DamageSource damageSource = entity.damageSources().magic();
             entity.hurt(damageSource,consumeHp);
         }
         //consume sugars
         sugarCount=Math.min(30,sugarCount);
-        Helper.consumeItem(container,Items.SUGAR,sugarCount);
+        //Helper.consumeItem(container,Items.SUGAR,sugarCount);
         //teleport
         //same level?
-        if(owner.level.dimension().equals(entity.level.dimension())) {
+        if(owner.level().dimension().equals(entity.level().dimension())) {
             entity.teleportTo(owner.getX(), owner.getY(), owner.getZ());
         }else{
-            entity.changeDimension(owner.getServer().getLevel(owner.level.dimension()));
+            entity.changeDimension(owner.getServer().getLevel(owner.level().dimension()));
             entity.teleportTo(owner.getX(), owner.getY(), owner.getZ());
         }
         LMMEntityWrapper wrapper = LMMEntityWrapper.of(entity);

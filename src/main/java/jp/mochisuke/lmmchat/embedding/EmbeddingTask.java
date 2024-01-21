@@ -4,7 +4,7 @@ import com.mojang.logging.LogUtils;
 import io.reactivex.annotations.Nullable;
 import jp.mochisuke.lmmchat.LMMChat;
 import jp.mochisuke.lmmchat.LMMChatConfig;
-import kotlin.jvm.functions.Function2;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 public class EmbeddingTask {
@@ -27,8 +28,8 @@ public class EmbeddingTask {
     private final EmbeddingDictionary dictionary=new EmbeddingDictionary();
     private final IEmbedderBase embedder;
     private final Thread thread;
-    private    HashMap<String,List<Double>> stringToVectorMap = new HashMap<String, List<Double>>();
-    private ConcurrentLinkedQueue<Tuple<String,EmbeddingAnswer >> toGenerate= new ConcurrentLinkedQueue<Tuple<String, EmbeddingAnswer>>();
+    private final HashMap<String,List<Double>> stringToVectorMap = new HashMap<String, List<Double>>();
+    private final ConcurrentLinkedQueue<Tuple<String,EmbeddingAnswer >> toGenerate= new ConcurrentLinkedQueue<Tuple<String, EmbeddingAnswer>>();
     String path="config/lmmchat_embedding.csv";
     public EmbeddingTask( IEmbedderBase embedder){
         this.embedder = embedder;
@@ -83,8 +84,8 @@ public class EmbeddingTask {
                 recipe->{
                     final StringBuilder recipeString=new StringBuilder();
                     //dump recipe product name
-
-                    recipeString.append(recipe.getType().toString()+ " でアイテム"+recipe.getResultItem().getDisplayName().getString()+"x"+ recipe.getResultItem().getCount()+"の作り方\n");
+                    RegistryAccess access= LMMChat.getServer().registryAccess();
+                    recipeString.append(recipe.getType() + " でアイテム"+recipe.getResultItem(access).getDisplayName().getString()+"x"+ recipe.getResultItem(access).getCount()+"の作り方\n");
                     //get all ingredients
                     recipeString.append("必要な材料:");
                     var ingredients=recipe.getIngredients();
@@ -114,7 +115,7 @@ public class EmbeddingTask {
                     );
                     //calculate embedding
 
-                    add(recipe.getResultItem().getDisplayName().getString()+" "+ recipe.getResultItem().getCount()+"個をクラフト",recipeString.toString());
+                    add(recipe.getResultItem(access).getDisplayName().getString()+" "+ recipe.getResultItem(access).getCount()+"個をクラフト",recipeString.toString());
 
 
                 }
@@ -170,7 +171,7 @@ public class EmbeddingTask {
         }
 
     }
-    public void add(String question, Function2<TamableAnimal,Object[],String> answer,Object... args){
+    public void add(String question, BiFunction<TamableAnimal,Object[],String> answer, Object... args){
         question=question.trim();
         if(stringToVectorMap.containsKey(question)){
             EmbeddingQuestion embeddingQuestion = new EmbeddingQuestion(question, stringToVectorMap.get(question));

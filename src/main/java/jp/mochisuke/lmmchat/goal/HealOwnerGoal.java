@@ -60,7 +60,7 @@ public class HealOwnerGoal<T extends TamableAnimal> extends AIGoalBase{
         return true;
     }
     public void activateCooldown(){
-        cooldown=60;
+        cooldown=18;
     }
     @Override
     public void tick() {
@@ -68,11 +68,10 @@ public class HealOwnerGoal<T extends TamableAnimal> extends AIGoalBase{
             return;
         }
         LivingEntity owner=entity.getOwner();
-        if(!(owner instanceof Player)){
+        if(!(owner instanceof Player player)){
             fail("no owner");
             return;
         }
-        Player player=(Player)owner;
         if(!player.getFoodData().needsFood() && owner.getHealth()>=owner.getMaxHealth()){
             if(healed>0){
                 success();
@@ -124,9 +123,9 @@ public class HealOwnerGoal<T extends TamableAnimal> extends AIGoalBase{
                     ItemStack edible=edibles.get(index);
 
                     //eat
-                    player.eat(player.level,edible);
+                    player.eat(player.level(),edible);
                     //sound
-                    player.level.playSound(player,
+                    player.level().playSound(player,
                             player.blockPosition(),edible.getItem().getEatingSound(),player.getSoundSource(),1.0f,1.0f);
                     //swing
                     entity.swing(InteractionHand.MAIN_HAND);
@@ -149,11 +148,11 @@ public class HealOwnerGoal<T extends TamableAnimal> extends AIGoalBase{
                     int index=random.nextInt(edibles.size());
                     ItemStack edible=edibles.get(index);
                     //eat
-                    player.eat(player.level,edible);
+                    player.eat(player.level(),edible);
                     //swing
                     entity.swing(InteractionHand.MAIN_HAND);
                     //sound
-                    player.level.playSound(player,player.blockPosition(),edible.getItem().getEatingSound(),player.getSoundSource(),1.0f,1.0f);
+                    player.level().playSound(player,player.blockPosition(),edible.getItem().getEatingSound(),player.getSoundSource(),1.0f,1.0f);
                     healed++;
                     //cooldown
                     activateCooldown();
@@ -177,10 +176,10 @@ public class HealOwnerGoal<T extends TamableAnimal> extends AIGoalBase{
                 int index=random.nextInt(potions.size());
                 ItemStack potion=potions.get(index);
                 //drink
-                player.eat(player.level,potion);
+                player.eat(player.level(),potion);
                 healed++;
                 //sound
-                player.level.playSound(player,player.blockPosition(),potion.getItem().getEatingSound(),player.getSoundSource(),1.0f,1.0f);
+                player.level().playSound(player,player.blockPosition(),potion.getItem().getEatingSound(),player.getSoundSource(),1.0f,1.0f);
                 //swing
                 entity.swing(InteractionHand.MAIN_HAND);
                 //emit eating particle
@@ -202,9 +201,9 @@ public class HealOwnerGoal<T extends TamableAnimal> extends AIGoalBase{
                 int index=random.nextInt(potions.size());
                 ItemStack potion=potions.get(index);
                 //drink
-                player.eat(player.level,potion);
+                player.eat(player.level(),potion);
                 //sound
-                player.level.playSound(player,player.blockPosition(),potion.getItem().getEatingSound(),player.getSoundSource(),1.0f,1.0f);
+                player.level().playSound(player,player.blockPosition(),potion.getItem().getEatingSound(),player.getSoundSource(),1.0f,1.0f);
                 //swing
                 entity.swing(InteractionHand.MAIN_HAND);
                 healed++;
@@ -240,9 +239,9 @@ public class HealOwnerGoal<T extends TamableAnimal> extends AIGoalBase{
                     ItemStack edible=edibles.get(index);
 
                     //eat
-                    player.eat(player.level,edible);
+                    player.eat(player.level(),edible);
                     //sound
-                    player.level.playSound(player,player.blockPosition(),
+                    player.level().playSound(player,player.blockPosition(),
                             edible.getItem().getEatingSound(),player.getSoundSource(),1.0f,1.0f);
                     //swing
                     entity.swing(InteractionHand.MAIN_HAND);
@@ -271,9 +270,9 @@ public class HealOwnerGoal<T extends TamableAnimal> extends AIGoalBase{
                     int index=random.nextInt(edibles.size());
                     ItemStack edible=edibles.get(index);
                     //eat
-                    player.eat(player.level,edible);
+                    player.eat(player.level(),edible);
                     //sound
-                    player.level.playSound(player,player.blockPosition(),
+                    player.level().playSound(player,player.blockPosition(),
                             edible.getItem().getEatingSound(),player.getSoundSource(),1.0f,1.0f);
                     //swing
                     entity.swing(InteractionHand.MAIN_HAND);

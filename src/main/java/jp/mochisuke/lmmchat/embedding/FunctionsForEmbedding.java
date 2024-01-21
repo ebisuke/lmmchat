@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 public class FunctionsForEmbedding {
     public static String nearbyEntities(TamableAnimal maid ,Object[] tag){
         //get nearby entities
-        Level world = maid.level;
+        Level world = maid.level();
         Class<LivingEntity> cl= (Class<LivingEntity>) tag[1];
         var entities = world.getEntitiesOfClass(cl, maid.getBoundingBox().inflate(30));
         StringBuilder sb = new StringBuilder();
@@ -39,7 +39,7 @@ public class FunctionsForEmbedding {
 
     public static String nearbyBlocks(TamableAnimal maid ,Object[] tag){
         //get nearby chest blocks
-        Level world = maid.level;
+        Level world = maid.level();
         var blockpos= maid.blockPosition();
         int size=20;
         int limit=10;

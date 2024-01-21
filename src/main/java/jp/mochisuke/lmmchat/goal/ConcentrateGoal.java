@@ -60,7 +60,7 @@ public class ConcentrateGoal<T extends TamableAnimal> extends AIGoalBase{
                 z = entity.getZ();
 
                 //biome
-                var biome = entity.level.getBiome(entity.blockPosition());
+                var biome = entity.level().getBiome(entity.blockPosition());
                 ForgeRegistry<Biome> biomeRegistry = (ForgeRegistry<Biome>) ForgeRegistries.BIOMES;
                 String biomeName;
                 if(biomeRegistry.getResourceKey(biome.get()).isEmpty()){
@@ -69,7 +69,7 @@ public class ConcentrateGoal<T extends TamableAnimal> extends AIGoalBase{
                     biomeName = biomeRegistry.getResourceKey(biome.get()).get().toString();
                 }
                 //nearby enemy
-                int enemies = entity.level.getEntitiesOfClass(Monster.class, entity.getBoundingBox().inflate(20)).size();
+                int enemies = entity.level().getEntitiesOfClass(Monster.class, entity.getBoundingBox().inflate(20)).size();
                 //owner hp/maxhp
 
                 Container inventory= Helper.getInventoryContainer(entity);
@@ -96,7 +96,7 @@ public class ConcentrateGoal<T extends TamableAnimal> extends AIGoalBase{
                     float ownerMaxHp = owner.getMaxHealth();
                     String distance;
                     //same level?
-                    if(owner.level==entity.level){
+                    if(owner.level()==entity.level()){
                         distance = String.format("distance %.0f",entity.distanceTo(owner));
                     }else{
                         distance="owner is in different dimension";

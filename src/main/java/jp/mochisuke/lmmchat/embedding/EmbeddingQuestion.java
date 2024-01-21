@@ -5,8 +5,8 @@ import io.reactivex.annotations.Nullable;
 import java.util.List;
 
 public class EmbeddingQuestion {
-    private String question;
-    private List<Double> vector;
+    private final String question;
+    private final List<Double> vector;
 
     public EmbeddingQuestion(String question, @Nullable List<Double> vector){
         this.question = question;

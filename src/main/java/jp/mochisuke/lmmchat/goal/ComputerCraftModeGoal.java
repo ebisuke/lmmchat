@@ -19,7 +19,7 @@ public class ComputerCraftModeGoal<T extends TamableAnimal> extends AIGoalBase{
     Player player;
     public ComputerCraftModeGoal(T entity) {
         this.entity = entity;
-        wrapper = LMMEntityWrapper.of((TamableAnimal) entity);
+        wrapper = LMMEntityWrapper.of(entity);
 
     }
 
@@ -46,10 +46,10 @@ public class ComputerCraftModeGoal<T extends TamableAnimal> extends AIGoalBase{
                 wrapper.getNBTMetaInt("lmmchat:computery"),
                 wrapper.getNBTMetaInt("lmmchat:computerz")
         );
-        BlockState block=entity.level.getBlockState(blockPos);
-        player=new PseudoPlayer(entity.level,blockPos);
+        BlockState block=entity.level().getBlockState(blockPos);
+        player=new PseudoPlayer(entity.level(),blockPos);
         //interact computer
-        var result=entity.level.getBlockState(blockPos).getBlock().use(block,entity.level,blockPos,player, InteractionHand.MAIN_HAND,null);
+        var result=entity.level().getBlockState(blockPos).getBlock().use(block,entity.level(),blockPos,player, InteractionHand.MAIN_HAND,null);
         if(result.shouldSwing()){
             entity.swing(InteractionHand.MAIN_HAND);
         }
@@ -80,7 +80,7 @@ public class ComputerCraftModeGoal<T extends TamableAnimal> extends AIGoalBase{
     @Override
     public void tick() {
         //get block
-        BlockState block=entity.level.getBlockState(blockPos);
+        BlockState block=entity.level().getBlockState(blockPos);
 
         //if entity is not near computer ,stop
         if(entity.distanceToSqr(blockPos.getX(),blockPos.getY(),blockPos.getZ())>4){

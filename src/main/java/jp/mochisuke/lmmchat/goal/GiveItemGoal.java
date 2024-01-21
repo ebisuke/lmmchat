@@ -48,7 +48,6 @@ public class GiveItemGoal <T extends PathfinderMob & HasInventory>  extends AIGo
     @Override
     public void start() {
         if(this.targetEntity==null || this.giveItemStack==null || this.itemCount<=0){
-            return;
         }
 
     }
@@ -129,7 +128,7 @@ public class GiveItemGoal <T extends PathfinderMob & HasInventory>  extends AIGo
                     container.setItem(slot,giveItemStack);
                     success();
                     return;
-                }else if(itemStack.sameItem(giveItemStack)){
+                }else if(ItemStack.isSameItem(itemStack,giveItemStack)){
                     //stack item
                     int stackSize=itemStack.getCount()+remain;
                     if(stackSize<=itemStack.getMaxStackSize()){

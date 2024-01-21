@@ -43,7 +43,7 @@ public class FindBlockOrder extends AIOrderBase{
         for(int x=pos.getX()-size/2;x<pos.getX()+size/2;x++){
             for(int y=pos.getY()-size/2;y<pos.getY()+size/2;y++){
                 for(int z=pos.getZ()-size/2;z<pos.getZ()+size/2;z++){
-                    var block=entity.getLevel().getBlockState(new BlockPos(x,y,z));
+                    var block=entity.level().getBlockState(new BlockPos(x,y,z));
                     if(block.getBlock().getName().getString().toLowerCase().contains(blockname)){
                         //found
                         xx=x;
@@ -83,15 +83,15 @@ public class FindBlockOrder extends AIOrderBase{
 
 
         for(var block:blocks){
-            xx= (int) block.getA().getX();
-            yy= (int) block.getA().getY();
-            zz= (int) block.getA().getZ();
-            message+=""+idx+":"+ block.getB().getBlock().getName().getString()+":"+String.format("%d,%d,%d",xx,yy,zz)+"\n";
+            xx= block.getA().getX();
+            yy= block.getA().getY();
+            zz= block.getA().getZ();
+            message+= idx+":"+ block.getB().getBlock().getName().getString()+":"+String.format("%d,%d,%d",xx,yy,zz)+"\n";
             idx++;
         }
-        xx= (int) blocks.get(0).getA().getX();
-        yy= (int) blocks.get(0).getA().getY();
-        zz= (int) blocks.get(0).getA().getZ();
+        xx= blocks.get(0).getA().getX();
+        yy= blocks.get(0).getA().getY();
+        zz= blocks.get(0).getA().getZ();
         //blockentity
 
         //store variables for nearest block
