@@ -79,7 +79,19 @@ public class OpenAiService {
         this.api = retrofit.create(OpenAiApi.class);
         this.executorService = client.dispatcher().executorService();
     }
+    public OpenAiService(final String token, final Duration timeout, final String baseurl) {
+        ObjectMapper mapper = defaultObjectMapper();
+        OkHttpClient client = defaultClient(token, timeout);
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(baseurl)
+                .client(client)
+                .addConverterFactory(JacksonConverterFactory.create(mapper))
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build();
 
+        this.api = retrofit.create(OpenAiApi.class);
+        this.executorService = client.dispatcher().executorService();
+    }
     /**
      * Creates a new OpenAiService that wraps OpenAiApi.
      * Use this if you need more customization, but use OpenAiService(api, executorService) if you use streaming and

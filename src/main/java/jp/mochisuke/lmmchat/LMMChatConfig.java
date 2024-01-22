@@ -22,6 +22,10 @@ public class LMMChatConfig  {
     public static String getGeminiApiKey(){
         return config.get("geminiapikey");
     }
+    public static String getGeminiProxyBaseUrl(){
+        return config.get("geminiproxybaseurl");
+    }
+
     public static String getModelName(){
         return config.get("modelname");
     }
@@ -157,7 +161,8 @@ redstone.setOutput(side,value): 指定した方向のレッドストーン信号
 
         // set default values
         if (!config.contains("apikey")) config.add("apikey", "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-        if (!config.contains("geminiapikey")) config.add("geminiapikey", "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        if (!config.contains("geminiapikey")) config.add("geminiapikey", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        if (!config.contains("geminiproxybaseurl")) config.add("geminiproxybaseurl", "https://example.com/");
         if (!config.contains("apitimeout")) config.add("apitimeout", 30000);
         if (!config.contains("modelname")) config.add("modelname", "gpt-3.5-turbo");
         if (!config.contains("engine")) config.add("engine", "OPENAI");

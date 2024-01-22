@@ -54,6 +54,7 @@ public class LMMChat {
         if(Objects.equals(caller, callee)){
             return;
         }
+
         boolean friendly = false;
         if(caller!=null) {
             // check callee is friendly to caller

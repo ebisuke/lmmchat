@@ -18,8 +18,11 @@ import java.util.Vector;
 public class OpenAIChat implements IChatBase{
 
     OpenAiService service;
-    public OpenAIChat(){
-        service = new OpenAiService(LMMChatConfig.getApiKey(), Duration.ofSeconds(LMMChatConfig.getApiTimeout()));
+    public OpenAIChat(String apikey,@Nullable String baseurl){
+        if (baseurl==null){
+            baseurl="https://api.openai.com";
+        }
+        service = new OpenAiService(apikey, Duration.ofSeconds(LMMChatConfig.getApiTimeout()),baseurl);
     }
 
     public Vector<ChatMessage> convertChatHistory(String callerId, ChatHistory chatHistory){
@@ -78,6 +81,7 @@ public class OpenAIChat implements IChatBase{
                     supportchat.setContent(supportMessage);
                     chatMessages.add(supportchat);
                 }
+
                 // prepare REST request
                 ChatCompletionRequest request = ChatCompletionRequest.builder()
                         .model(LMMChatConfig.getModelName())
