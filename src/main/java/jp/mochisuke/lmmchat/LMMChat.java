@@ -1,10 +1,15 @@
 package jp.mochisuke.lmmchat;
 
 import com.mojang.logging.LogUtils;
-import jp.mochisuke.lmmchat.chat.*;
+import jp.mochisuke.lmmchat.chat.ChatGenerationRequest;
+import jp.mochisuke.lmmchat.chat.ChatManager;
+import jp.mochisuke.lmmchat.chat.IChatPreface;
+import jp.mochisuke.lmmchat.chat.VariableChatPreface;
 import jp.mochisuke.lmmchat.commands.CommandDispatcher;
 import jp.mochisuke.lmmchat.order.AIOrderDefinitions;
-import net.minecraft.client.Minecraft;
+import jp.mochisuke.lmmchat.packets.SynthesisPacketHandler;
+import jp.mochisuke.lmmchat.sounds.SoundPlayer;
+import jp.mochisuke.lmmchat.sounds.VoicevoxSpeech;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
@@ -36,6 +41,9 @@ public class LMMChat {
 
     public  static ChatManager chatManager;
     static LMMChatController lmmChatController;
+
+    public static SoundPlayer soundPlayer;
+
     // Define mod id in a common place for everything to reference
     public static final String MODID = "lmmchat";
     // Directly reference a slf4j logger
@@ -85,7 +93,9 @@ public class LMMChat {
         }else{
             preface=new VariableChatPreface(LMMChatConfig.getPreface(),owner,caller,callee);
         }
-
+        if(callerIsAssistant){
+            callerMessage="<System> "+callerMessage;
+        }
 
         ChatGenerationRequest request = new ChatGenerationRequest(caller,callee,callerIsAssistant,
                 calleeIsAssistant,callerMessage,caller!=null?caller.level().getGameTime():callee.level().getGameTime(),conversationCount,preface);
@@ -102,7 +112,7 @@ public class LMMChat {
         BLOCKS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so items get registered
         ITEMS.register(modEventBus);
-
+        SynthesisPacketHandler.register();
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
         AIOrderDefinitions.initialize();
@@ -145,6 +155,7 @@ public class LMMChat {
         return day;
     }
 
+
     public static MinecraftServer getServer(){
         return server;
     }
@@ -162,7 +173,10 @@ public class LMMChat {
         public static void onClientSetup(FMLClientSetupEvent event) {
             // Some client setup code
             LOGGER.info("HELLO FROM CLIENT SETUP");
-            LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+
+            soundPlayer=new SoundPlayer(new VoicevoxSpeech(LMMChatConfig.getVoiceVoxBaseUrl()));
         }
+
+
     }
 }

@@ -234,14 +234,14 @@ public class EmbeddingTask {
         }
 
     }
-    public @Nullable List<Object> searchSimilar(String question,int count){
+    public @Nullable List<Tuple<Object,Object[]>> searchSimilar(String question,int count){
         var embeddedQuestion=embedder.calculateEmbedding(List.of(question)).get(0);
         var similar= dictionary.searchSimilar(embeddedQuestion, LMMChatConfig.getThresholdSimilarity(),count);
 
         if(similar!=null && similar.size()>0){
-            ArrayList<Object> result=new ArrayList<Object>();
+            ArrayList<Tuple<Object,Object[]>> result=new ArrayList<Tuple<Object,Object[]>>();
             for(var entry:similar){
-                result.add(entry.getAnswer());
+                result.add(new Tuple<Object,Object[]>(entry.getAnswer(),entry.getArgs()));
             }
             return result;
         }else{

@@ -25,7 +25,26 @@ public class LMMChatConfig  {
     public static String getGeminiProxyBaseUrl(){
         return config.get("geminiproxybaseurl");
     }
-
+    public static String getVoiceVoxBaseUrl(){
+        return config.get("voicevoxbaseurl");
+    }
+    public static String getFFMPEGPath(){
+        return config.get("ffmpegpath");
+    }
+    public static int getVoiceVoxSpeakerId(){
+        return config.get("voicevoxspeakerid");
+    }
+    public static void setVoiceVoxSpeakerId(int speakerid){
+        config.set("voicevoxspeakerid", speakerid);
+        config.save();
+    }
+    public static boolean isDisableVoicevox(){
+        return config.get("disablevoicevox");
+    }
+    public static void setDisableVoicevox(boolean disablevoicevox){
+        config.set("disablevoicevox", disablevoicevox);
+        config.save();
+    }
     public static String getModelName(){
         return config.get("modelname");
     }
@@ -163,9 +182,13 @@ redstone.setOutput(side,value): 指定した方向のレッドストーン信号
         if (!config.contains("apikey")) config.add("apikey", "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
         if (!config.contains("geminiapikey")) config.add("geminiapikey", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
         if (!config.contains("geminiproxybaseurl")) config.add("geminiproxybaseurl", "https://example.com/");
+        if (!config.contains("voicevoxbaseurl")) config.add("voicevoxbaseurl", "http://localhost:50021/");
+        if (!config.contains("voicevoxspeakerid")) config.add("voicevoxspeakerid", 14);
+        if (!config.contains("disablevoicevox")) config.add("disablevoicevox", false);
         if (!config.contains("apitimeout")) config.add("apitimeout", 30000);
         if (!config.contains("modelname")) config.add("modelname", "gpt-3.5-turbo");
         if (!config.contains("engine")) config.add("engine", "OPENAI");
+        if (!config.contains("ffmpegpath")) config.add("ffmpegpath", "/usr/local/bin/ffmpeg");
         //if (!config.contains("preface")) config.add("preface", default_prompt);
         // load from lmmchat_preface.txt
         var file=new File("config/lmmchat_preface.txt");

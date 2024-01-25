@@ -9,7 +9,14 @@ import jp.mochisuke.lmmchat.lmm.LMMEntityWrapper;
 import jp.mochisuke.lmmchat.order.AIOrderBase;
 import jp.mochisuke.lmmchat.order.AIOrderParser;
 import jp.mochisuke.lmmchat.order.VariablesContext;
+import jp.mochisuke.lmmchat.packets.SynthesisPacket;
+import jp.mochisuke.lmmchat.packets.SynthesisPacketHandler;
+import jp.mochisuke.lmmchat.sounds.SoundPlayer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.TamableAnimal;
@@ -27,10 +34,18 @@ public class LMMChatController {
     private static final Logger logger = LogUtils.getLogger();
 
     private static final Map<Integer, VariablesContext> contextMap=new HashMap<>();
-
+    @SubscribeEvent
+    public static void onRenderTick(net.minecraftforge.event.TickEvent.RenderTickEvent event){
+        if(event.side.isClient()){
+            if(event.phase== net.minecraftforge.event.TickEvent.Phase.START){
+                LMMChat.soundPlayer.onTick();
+            }
+        }
+    }
     @SubscribeEvent
     public static void onTick(net.minecraftforge.event.TickEvent.ServerTickEvent event){
         if(event.side.isClient()){
+
             return;
         }
         // server only
@@ -143,19 +158,29 @@ public class LMMChatController {
                         var tamable = (TamableAnimal) callee;
                         var owner = Helper.getOwner(tamable);
                         if(owner!=null) {                        //owner.get().getser(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
+                            if(!LMMChatConfig.isDisableVoicevox()) {
+                                SynthesisPacketHandler.sendToClient(new SynthesisPacket(callee.getId(), callee.blockPosition(), calleeMessageChat, owner.getUUID()), (ServerPlayer) owner);
+                            }
                             owner.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + calleeMessageChat));
                         }else{
                             logger.info("TALK:owner not found");
                         }
                     } else {
+                        if (callee instanceof TamableAnimal) {
+                            var tamable = (TamableAnimal) callee;
+                            var owner = Helper.getOwner(tamable);
+                            //say chat to nearest players
+                            String finalCalleeMessage = calleeMessageChat;
+                            callee.getCommandSenderWorld().getNearbyPlayers(TargetingConditions.forNonCombat(), callee,/*AABB*/ callee.getBoundingBox().inflate(20)
+                            ).forEach(player -> {
+                                //player.displayClientMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
+                                if (player == owner && !LMMChatConfig.isDisableVoicevox()) {
+                                    SynthesisPacketHandler.sendToClient(new SynthesisPacket(callee.getId(), callee.blockPosition(), finalCalleeMessage, player.getUUID()), (ServerPlayer) player);
+                                }
+                                player.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + finalCalleeMessage));
 
-                        //say chat to nearest players
-                        String finalCalleeMessage = calleeMessageChat;
-                        callee.getCommandSenderWorld().getNearbyPlayers(TargetingConditions.forNonCombat(), callee,/*AABB*/ callee.getBoundingBox().inflate(20)
-                        ).forEach(player -> {
-                            //player.displayClientMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
-                            player.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + finalCalleeMessage));
-                        });
+                            });
+                        }
                     }
 
                 }
@@ -167,11 +192,36 @@ public class LMMChatController {
                 if (caller!=null && callee!=null && caller.getClass().toString().contains("LittleMaidEntity") && callee.getClass().toString().contains("LittleMaidEntity") &&
                         chatData.getConversationCount() < LMMChatConfig.getConversationLimitForLmms()) {
                     //conversation
+
                     LMMChat.addChatMessage(callee, caller,chatData.isCalleeIsSystem(),chatData.isCallerIsSystem(),
                             chatData.getCalleeMessage(), chatData.getConversationCount());
                 }
             }
 
+        }
+    }
+    public static void synthesis(int sourceId, BlockPos pos,  String text){
+
+        SoundPlayer splayer=LMMChat.soundPlayer;
+        if(splayer==null){
+            logger.error("sound player is null");
+            return;
+        }
+        if(LMMChatConfig.isDisableVoicevox()){
+            logger.debug("voicevox is disabled");
+            return;
+        }
+        //get entity
+        assert Minecraft.getInstance().level != null;
+        Entity entity=Minecraft.getInstance().level.getEntity(sourceId);
+        if (entity==null){
+            logger.debug("entity not found:"+sourceId);
+            return;
+        }
+        try {
+            splayer.generateAndPlay(sourceId, entity, text, LMMChatConfig.getVoiceVoxSpeakerId(),false);
+        }catch (Exception e){
+            logger.error("sound play error",e);
         }
     }
     //chat submitted

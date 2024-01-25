@@ -4,6 +4,8 @@ import com.mojang.logging.LogUtils;
 import jp.mochisuke.lmmchat.LMMChatConfig;
 import jp.mochisuke.lmmchat.embedding.EmbeddingTask;
 import jp.mochisuke.lmmchat.embedding.OpenAIEmbedder;
+import jp.mochisuke.lmmchat.sounds.SoundPlayer;
+import net.minecraft.world.entity.TamableAnimal;
 import org.slf4j.Logger;
 
 import java.util.Queue;
@@ -18,6 +20,7 @@ public class ChatManager {
     ConcurrentHashMap<String, ChatHistory> chatHistory;
     Queue<ChatGenerationRequest> chatGenerationRequestQueue;
     EmbeddingTask embeddingTask;
+    SoundPlayer soundPlayer;
     boolean isEnabled = true;
     public ChatManager() {
         thread = new Thread(this::routine);
@@ -26,6 +29,7 @@ public class ChatManager {
         chatGenerationRequestQueue = new java.util.concurrent.ConcurrentLinkedQueue<>();
         chatHistory = new ConcurrentHashMap<>();
         embeddingTask = new EmbeddingTask(new OpenAIEmbedder());
+
         start();
     }
     public void disable(){
@@ -80,6 +84,11 @@ public class ChatManager {
                         if(LMMChatConfig.isEnableEmbeddeding()){
                             //1st pass
                             var ret= chatContoller.generateChatMessage(chatData, history,null);
+                            if (ret==null){
+                                //retry
+                                PushRequest(chatData);
+                                continue;
+                            }
                             // search similar message
                             var similarMessage = embeddingTask.searchSimilar(ret,LMMChatConfig.getEmbeddingInjectCount());
                             if(similarMessage!=null && similarMessage.size()>0) {
@@ -88,16 +97,29 @@ public class ChatManager {
                                 String processedMessage="";
                                 for(int i=0;i<similarMessage.size();i++) {
                                     var elem=similarMessage.get(i);
+                                    var elem_a=elem.getA();
+                                    var elem_b=elem.getB();
                                     if (elem instanceof BiFunction<?,?,?>) {
-                                        processedMessage += ((BiFunction<String, ChatGenerationRequest, String>) elem).apply(ret, chatData)+"\n";
+                                        TamableAnimal animal;
+                                        if (chatData.getCallee() instanceof TamableAnimal) {
+                                            animal = (TamableAnimal) chatData.getCallee();
+                                        } else {
+                                            animal = null;
+                                        }
+                                        processedMessage += ((BiFunction<TamableAnimal, Object[], String>) elem).apply(animal, elem_b)+"\n";
                                     } else {
-                                        processedMessage += elem +"\n";
+                                        processedMessage += elem_a +"\n";
                                     }
                                 }
                                 processedMessage=processedMessage.trim();
                                 logger.info("similar message: " + processedMessage);
                                 processedMessage="以下はあなたがやりたいことに対する補足情報です。必要が無ければ無視しても構いません。\n"+processedMessage;
                                 var ret2 = chatContoller.conversationMessage(chatData, history, processedMessage);
+                                if(ret2==null){
+                                    //retry
+                                    PushRequest(chatData);
+                                    continue;
+                                }
                                 logger.info("2nd pass: " + ret2.getCalleeMessage());
                                 if (chatData.getCallee() == null && chatData.getCallee().isDeadOrDying()) {
                                     //remove from history if exist
@@ -129,6 +151,11 @@ public class ChatManager {
                             }
                         }else {
                                 var ret = chatContoller.conversationMessage(chatData, history, null);
+                                if(ret==null){
+                                    //retry
+                                    PushRequest(chatData);
+                                    continue;
+                                }
                                 if (chatData.getCallee() == null && chatData.getCallee().isDeadOrDying()) {
                                     //remove from history if exist
                                     history.chatDataList.clear();
