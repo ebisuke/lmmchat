@@ -13,7 +13,6 @@ import jp.mochisuke.lmmchat.packets.SynthesisPacket;
 import jp.mochisuke.lmmchat.packets.SynthesisPacketHandler;
 import jp.mochisuke.lmmchat.sounds.SoundPlayer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -158,8 +157,8 @@ public class LMMChatController {
                         var tamable = (TamableAnimal) callee;
                         var owner = Helper.getOwner(tamable);
                         if(owner!=null) {                        //owner.get().getser(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
-                            if(!LMMChatConfig.isDisableVoicevox()) {
-                                SynthesisPacketHandler.sendToClient(new SynthesisPacket(callee.getId(), callee.blockPosition(), calleeMessageChat, owner.getUUID()), (ServerPlayer) owner);
+                            if(LMMChatConfig.isEnableVoicevox()) {
+                                SynthesisPacketHandler.sendToClient(new SynthesisPacket(callee.getId(), LMMChatConfig.getVoiceVoxSpeakerId(), calleeMessageChat, owner.getUUID()), (ServerPlayer) owner);
                             }
                             owner.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + calleeMessageChat));
                         }else{
@@ -174,8 +173,15 @@ public class LMMChatController {
                             callee.getCommandSenderWorld().getNearbyPlayers(TargetingConditions.forNonCombat(), callee,/*AABB*/ callee.getBoundingBox().inflate(20)
                             ).forEach(player -> {
                                 //player.displayClientMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
-                                if (player == owner && !LMMChatConfig.isDisableVoicevox()) {
-                                    SynthesisPacketHandler.sendToClient(new SynthesisPacket(callee.getId(), callee.blockPosition(), finalCalleeMessage, player.getUUID()), (ServerPlayer) player);
+                                if (LMMChatConfig.isEnableVoicevox()) {
+                                    if (player == owner) {
+                                        SynthesisPacketHandler.sendToClient(
+                                                new SynthesisPacket(callee.getId(), LMMChatConfig.getVoiceVoxSpeakerId(), finalCalleeMessage, player.getUUID()), (ServerPlayer) player);
+                                    }
+                                    else{
+                                        SynthesisPacketHandler.sendToClient(
+                                                new SynthesisPacket(callee.getId(), LMMChatConfig.getVoiceVoxNeutralSpeakerId(), finalCalleeMessage, player.getUUID()), (ServerPlayer) player);
+                                    }
                                 }
                                 player.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + finalCalleeMessage));
 
@@ -200,26 +206,31 @@ public class LMMChatController {
 
         }
     }
-    public static void synthesis(int sourceId, BlockPos pos,  String text){
+    public static void synthesis(int sourceId,int speakerId, String text){
 
         SoundPlayer splayer=LMMChat.soundPlayer;
         if(splayer==null){
             logger.error("sound player is null");
             return;
         }
-        if(LMMChatConfig.isDisableVoicevox()){
+        if(!LMMChatConfig.isEnableVoicevox()){
             logger.debug("voicevox is disabled");
             return;
         }
-        //get entity
-        assert Minecraft.getInstance().level != null;
-        Entity entity=Minecraft.getInstance().level.getEntity(sourceId);
-        if (entity==null){
-            logger.debug("entity not found:"+sourceId);
-            return;
-        }
+
         try {
-            splayer.generateAndPlay(sourceId, entity, text, LMMChatConfig.getVoiceVoxSpeakerId(),false);
+            Thread th=new Thread(()->{
+                //get entity
+                assert Minecraft.getInstance().level != null;
+                Entity entity=Minecraft.getInstance().level.getEntity(sourceId);
+                if (entity==null){
+                    logger.debug("entity not found:"+sourceId);
+                    return;
+                }
+                splayer.generateAndPlay(sourceId, speakerId, text);
+            });
+            th.start();
+            //splayer.generateAndPlay(sourceId, speakerId, text,false);
         }catch (Exception e){
             logger.error("sound play error",e);
         }

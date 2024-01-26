@@ -78,5 +78,32 @@ public abstract class AbstractSpeechGenerator {
         generateImpl(hashstr,text,speakerId,wrappedCallback);
 
     }
+    public TTSResult getIfAlreadyCreated(String text,int speakerId){
+        MessageDigest md= null;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        md.update((speakerId+"_"+text).getBytes());
+        var hash= md.digest();
+        // use 48 chars
+        var hashstr= Base64.getEncoder().encodeToString(hash);
+        String modified_filename=hashstr.replaceAll("[^a-zA-Z0-9\\-]", "_");
+        String path=BASE_DIR+modified_filename+".ogg";
+        //already generated?
+        if (java.nio.file.Files.exists(java.nio.file.Paths.get(path))) {
+            //already generated
+            //return ogg
+            try {
+                var data=java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(path));
+                return new TTSResult(text,path,data);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+        return null;
+    }
     abstract void generateImpl(String hash,String text, int speakerId, Function<byte[],Void> callback);
 }

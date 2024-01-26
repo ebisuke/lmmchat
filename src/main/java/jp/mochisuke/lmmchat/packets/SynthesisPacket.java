@@ -2,7 +2,6 @@ package jp.mochisuke.lmmchat.packets;
 
 import com.mojang.logging.LogUtils;
 import jp.mochisuke.lmmchat.LMMChatController;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import org.slf4j.Logger;
@@ -15,7 +14,7 @@ public class SynthesisPacket {
 
     public int sourceId;
 
-    public BlockPos sourcePos;
+    public int speakerId;
     public String text;
     public UUID target;
 
@@ -23,13 +22,13 @@ public class SynthesisPacket {
     public SynthesisPacket(FriendlyByteBuf buf)
     {
         this.sourceId = buf.readInt();
-        this.sourcePos = buf.readBlockPos();
+        this.speakerId = buf.readInt();
         this.text = buf.readUtf(32767);
         this.target = buf.readUUID();
     }
-    public SynthesisPacket(int sourceId, BlockPos pos,String text,UUID target){
+    public SynthesisPacket(int sourceId, int speakerId,String text,UUID target){
         this.sourceId=sourceId;
-        this.sourcePos=pos;
+        this.speakerId=speakerId;
         this.text=text;
         this.target=target;
 
@@ -37,7 +36,7 @@ public class SynthesisPacket {
     public void encode(FriendlyByteBuf buf)
     {
         buf.writeInt(this.sourceId);
-        buf.writeBlockPos(this.sourcePos);
+        buf.writeInt(this.speakerId);
         buf.writeUtf(this.text);
         buf.writeUUID(this.target);
     }
@@ -47,7 +46,7 @@ public class SynthesisPacket {
         ctx.get().enqueueWork(() ->
                 {
                     LOGGER.info("Received synthesis packet from server");
-                    LMMChatController.synthesis(this.sourceId, this.sourcePos, this.text);
+                    LMMChatController.synthesis(this.sourceId, this.speakerId, this.text);
                 }
         );
         ctx.get().setPacketHandled(true);

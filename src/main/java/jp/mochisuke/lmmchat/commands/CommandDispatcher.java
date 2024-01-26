@@ -18,7 +18,17 @@ import java.util.function.Supplier;
 public class CommandDispatcher {
 
     public static void registerCommands(MinecraftServer server) {
-        String[] available_models = new String[]{"gpt-3.5-turbo", "gpt-3.5-turbo-1106","gpt-3.5-turbo-16k","gpt-4","gpt-4-1106-preview"};
+        String[] available_models = new String[]{
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-0301",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-16k-0613",
+                "gpt-4",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-0125-preview"};
 
 
         server.getCommands().getDispatcher().register(
@@ -196,7 +206,7 @@ public class CommandDispatcher {
                                                         x -> {
                                                             //set enablevoicevox
                                                             boolean enablevoicevox = x.getArgument("enablevoicevox", Boolean.class);
-                                                            LMMChatConfig.setDisableVoicevox(!enablevoicevox);
+                                                            LMMChatConfig.setEnableVoicevox(enablevoicevox);
                                                             x.getSource().sendSuccess(Helper.wrapSupplier(Component.nullToEmpty("EnableVoiceVox set to " + enablevoicevox + ".")), false);
                                                             return 0;
                                                         }
@@ -205,13 +215,42 @@ public class CommandDispatcher {
                                         .executes(
                                                 x -> {
                                                     //get enablevoicevox
-                                                    boolean enablevoicevox = !LMMChatConfig.isDisableVoicevox();
+                                                    boolean enablevoicevox = LMMChatConfig.isEnableVoicevox();
                                                     x.getSource().sendSuccess(Helper.wrapSupplier(Component.nullToEmpty("EnableVoiceVox is " + enablevoicevox + ".")), false);
                                                     return 0;
                                                 }
                                         )
                                 ))
         );
+        //neutral speaker id
+        server.getCommands().getDispatcher().register(
+                LiteralArgumentBuilder.<CommandSourceStack>literal("lmmchat")
+                        .then(LiteralArgumentBuilder.<CommandSourceStack>literal("neutralspeakerid")
+                                .then(LiteralArgumentBuilder.<CommandSourceStack>literal("set")
+                                        .then(RequiredArgumentBuilder.<CommandSourceStack, Integer>argument("neutralspeakerid", IntegerArgumentType.integer())
+                                                .executes(
+                                                        x -> {
+                                                            //set neutralspeakerid
+                                                            int neutralspeakerid = x.getArgument("neutralspeakerid", Integer.class);
+                                                            LMMChatConfig.setVoiceVoxNeutralSpeakerId(neutralspeakerid);
+
+                                                            x.getSource().sendSuccess(Helper.wrapSupplier(Component.nullToEmpty("NeutralSpeakerId set to " + neutralspeakerid + ".")), false);
+                                                            return 0;
+                                                        }
+                                                )
+                                        )).then(LiteralArgumentBuilder.<CommandSourceStack>literal("get")
+                                        .executes(
+                                                x -> {
+                                                    //get neutralspeakerid
+                                                    int neutralspeakerid = LMMChatConfig.getVoiceVoxNeutralSpeakerId();
+                                                    x.getSource().sendSuccess(Helper.wrapSupplier(Component.nullToEmpty("NeutralSpeakerId is " + neutralspeakerid + ".")), false);
+                                                    return 0;
+                                                }
+                                        )
+                                ))
+        );
+
+
         //speaker id
         server.getCommands().getDispatcher().register(
                 LiteralArgumentBuilder.<CommandSourceStack>literal("lmmchat")
@@ -223,7 +262,7 @@ public class CommandDispatcher {
                                                             //set speakerid
                                                             int speakerid = x.getArgument("speakerid", Integer.class);
                                                             LMMChatConfig.setVoiceVoxSpeakerId(speakerid);
-                                                            LMMChat.soundPlayer.cleanupSpeechDir();
+
                                                             x.getSource().sendSuccess(Helper.wrapSupplier(Component.nullToEmpty("SpeakerId set to " + speakerid + ".")), false);
                                                             return 0;
                                                         }
@@ -239,51 +278,7 @@ public class CommandDispatcher {
                                         )
                                 ))
         );
-        //engine
-        server.getCommands().getDispatcher().register(
-                LiteralArgumentBuilder.<CommandSourceStack>literal("lmmchat")
-                        .then(LiteralArgumentBuilder.<CommandSourceStack>literal("engine")
-                                .then(LiteralArgumentBuilder.<CommandSourceStack>literal("set")
-                                        .then(RequiredArgumentBuilder.<CommandSourceStack, String>argument("engine", StringArgumentType.string())
-                                                .suggests((context, builder) -> {
-                                                    return net.minecraft.commands.SharedSuggestionProvider.suggest(new String[]{"openai", "gemini"}, builder);
-                                                })
 
-                                                .executes(
-                                                        x -> {
-                                                            //set engine
-                                                            String engine = x.getArgument("engine", String.class);
 
-                                                            //available engine?
-                                                            if (java.util.Arrays.asList(new String[]{"openai", "gemini"}).contains(engine)) {
-                                                                LMMChatConfig.setEngine(LMMChatConfig.Engine.valueOf(engine.toUpperCase()));
-                                                                var c=Component.nullToEmpty("Engine set to " + engine + ".");
-                                                                // to supplier
-                                                                Supplier<Component> supplier = () -> c;
-                                                                x.getSource().sendSuccess(supplier, false);
-                                                            } else {
-                                                                var c=Component.nullToEmpty("Engine " + engine + " is not available.");
-                                                                // to supplier
-                                                                Supplier<Component> supplier = () -> c;
-                                                                x.getSource().sendFailure(c);
-                                                            }
-                                                            return 0;
-                                                        }
-                                                )
-                                        )).then(LiteralArgumentBuilder.<CommandSourceStack>literal("get")
-                                        .executes(
-                                                x -> {
-                                                    //get engine
-                                                    String engine = LMMChatConfig.getEngine().toString();
-
-                                                    x.getSource().sendSuccess(
-                                                            Helper.wrapSupplier(Component.nullToEmpty("Engine is " + engine + ".")), false);
-                                                    return 0;
-                                                }
-                                        )
-                                )
-
-                        )
-        );
     }
 }

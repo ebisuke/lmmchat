@@ -109,9 +109,9 @@ public class OpenAIChat implements IChatBase{
 
                 return ret.getChoices().get(0).getMessage().getContent();
             }catch(OpenAiHttpException ex) {
-                if(ex.getMessage().contains("This model's maximum context length")){
+                //if(ex.getMessage().contains("This model's maximum context length")){
                     throw new TooLongConversationException();
-                }
+                //}
             }catch (RuntimeException e) {
                 if (e.getCause() instanceof SocketTimeoutException) {
                     System.out.println("SocketTimeoutException");

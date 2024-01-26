@@ -81,7 +81,10 @@ public class VoicevoxSpeech extends AbstractSpeechGenerator {
                             // store to memory
                             byte[] data=response.body().bytes();
                             LOGGER.info("received "+baseUrl+"synthesis?speaker="+speakerId);
-                            callback.apply(data);
+                            Thread th=new Thread(()->{
+                                callback.apply(data);
+                            });
+                            th.start();
                         }else{
                             LOGGER.error("failed to request "+baseUrl+"synthesis?speaker="+speakerId);
                             return;

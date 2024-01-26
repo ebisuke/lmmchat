@@ -1,11 +1,14 @@
 package jp.mochisuke.lmmchat.sounds;
 
 import com.mojang.logging.LogUtils;
+import io.reactivex.disposables.Disposable;
+import jp.mochisuke.lmmchat.LMMChatConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.Sound;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -17,25 +20,46 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @OnlyIn(Dist.CLIENT)
-public class SoundPlayer {
+
+public class SoundPlayer implements Disposable {
     AbstractSpeechGenerator generator;
     private static final Logger LOGGER = LogUtils.getLogger();
     HashMap<Integer, Date> entityIdToLastPlayed = new HashMap<>();
-    float cooldownBase=0.4f;
-    Queue<SoundInstance> queue;
+    Thread generatorThread;
+    Queue<SoundInstance> soundPlayQueue;
+    Queue<Tuple<String,Integer>> generatorQueue;
     boolean isPlaying=false;
+    boolean isDisposed=false;
     public SoundPlayer(AbstractSpeechGenerator generator) {
         this.generator = generator;
-        queue=new ConcurrentLinkedDeque<>();
+        soundPlayQueue =new ConcurrentLinkedDeque<>();
+        generatorQueue=new ConcurrentLinkedDeque<>();
         cleanupSpeechDir();
+        generatorThread=new Thread(this::generatorProcess);
+        generatorThread.start();
     }
+    private void generatorProcess(){
+        while(true){
+            if(!generatorQueue.isEmpty()){
+                Tuple<String,Integer> data=generatorQueue.poll();
+                LOGGER.debug("generating:"+data.getA());
+                generator.generate(data.getA(), data.getB(), (x) ->{
+                        return null;
+                        });
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                break;
+            }
+        }
+    }
+
     public void cleanupSpeechDir(){
         java.io.File dir = new java.io.File("speech");
         if (!dir.exists()) {
@@ -46,7 +70,8 @@ public class SoundPlayer {
             return;
         }
         for (java.io.File file : files) {
-            if (file.isFile()) {
+            //remove *.ogg only
+            if (file.isFile() && file.getName().toLowerCase().endsWith(".ogg")) {
                 file.delete();
             }
         }
@@ -96,117 +121,156 @@ public class SoundPlayer {
         double duration = (double) (length*1000) / (double) rate;
         return duration;
     }
-    public void generateAndPlay(int senderid, Entity sourceEntity, String text, int speakerId,boolean isContinue) {
-        //find 、。！？\n
-        String[] find = {"、", "。", "！", "？", "\n"};
-        int firstIndex=Integer.MAX_VALUE;
-        for (String s : find) {
-            int index = text.indexOf(s);
-            if (index != -1) {
-                firstIndex = Math.min(firstIndex, index);
-            }
-        }
-
-        if(firstIndex==0){
-            LOGGER.debug("sentences[0] length is 0");
-            generateAndPlay(senderid, sourceEntity, text.substring(1), speakerId,isContinue);
-            return;
-        }
-        String firstSentence = text;
-        String nextSentence = "";
-        if(firstIndex!=Integer.MAX_VALUE){
-            firstSentence = text.substring(0, firstIndex);
-            nextSentence = text.substring(firstIndex + 1);
-        }
-
-        if (sourceEntity==null || !sourceEntity.isAlive() || sourceEntity.isSpectator()) {
-            LOGGER.debug("source entity is null or not alive");
-            return;
-        }
+    public void generateAndPlay(int senderid,int speakerId, String text) {
         if(Minecraft.getInstance().isPaused()||Minecraft.getInstance().level==null){
             return;
         }
-        if(!isContinue && isPlaying){
+
+        if(isPlaying){
             LOGGER.debug("is playing");
             return;
         }
-//        if (entityIdToLastPlayed.containsKey(senderid) && !isContinue) {
-//            Date lastPlayed = entityIdToLastPlayed.get(senderid);
-//            Date now = new Date();
-//            long diff = now.getTime() - lastPlayed.getTime();
-//
-//            long cooldowntime=(long) (cooldownBase*text.length() * 1000);
-//            cooldowntime=Math.min(cooldowntime,30000);
-//            if (diff <cooldowntime) {
-//                return;
-//            }
-//        }
+
+        String splittingChars= LMMChatConfig.getVoicevoxSentenceSplitter();
+
+
+        ArrayList<String> allSentences=new ArrayList<>();
+        String remain=text;
+        while(true) {
+            int minIndex = Integer.MAX_VALUE;
+            for (int i = 0; i < splittingChars.length(); i++) {
+                String s = String.valueOf(splittingChars.charAt(i));
+                int index = remain.indexOf(s);
+                if (index != -1) {
+                    minIndex = Math.min(minIndex, index);
+                }
+            }
+            if(minIndex==Integer.MAX_VALUE){
+                allSentences.add(remain);
+                break;
+            }else{
+                allSentences.add(remain.substring(0,minIndex+1));
+                remain=remain.substring(minIndex+1);
+            }
+        }
+        //push generator queue
+        for (String sentence : allSentences) {
+            generatorQueue.add(new Tuple<>(sentence,speakerId));
+        }
+
         entityIdToLastPlayed.put(senderid, new Date());
-        //generate first sentence
-        String finalNextSentence = nextSentence;
-        String finalNextSentence1 = nextSentence;
-        generator.generate(firstSentence, speakerId, (x) -> {
 
-            //parse ogg header
-            try {
-                InputStream oggFile = null;
-                try {
-                    oggFile = new FileInputStream(x.filename);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                double length = 0;
-                try {
-                    length = calculateDuration(oggFile, x.raw_data.length);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        Thread th=new Thread(()->{
+            attemptToPlay(senderid,text,speakerId);
+        });
+        th.start();
 
-                if (!sourceEntity.isAlive() || sourceEntity.isSpectator()) {
-                    return null;
-                }
-                //shutdown?
-                if(Minecraft.getInstance().isPaused()||Minecraft.getInstance().level==null){
-                    return null;
-                }
-                if(!isContinue && isPlaying){
-                    LOGGER.debug("is playing");
-                    return null;
-                }
-                isPlaying = true;
-                play(senderid, sourceEntity.blockPosition(), x.text, x.filename);
-                //wait
-                try {
-                    LOGGER.debug("waiting " + length + "ms");
-                    Thread.sleep((long) (length)-50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                if (finalNextSentence.length() >0) {
 
-                    String remain = finalNextSentence1;
-                    LOGGER.debug("generating next sentence:" + remain);
-                    //invoke another thread
-                    Thread thread = new Thread(() -> {
-                        generateAndPlay(senderid, sourceEntity, remain, speakerId, true);
-                    });
-                    thread.start();
-                } else {
+    }
+    public void attemptToPlay(int senderId,String text,int speakerId){
+        isPlaying = true;
+        try{
+            String firstSentence = text;
+            String nextSentence = "";
+            //find 、。！？\n
+            String splittingChars= LMMChatConfig.getVoicevoxSentenceSplitter();
+            //to array
+            ArrayList<String> find=new ArrayList<>();
+            for (int i = 0; i < splittingChars.length(); i++) {
+                find.add(String.valueOf(splittingChars.charAt(i)));
+            }
+
+            int firstIndex=Integer.MAX_VALUE;
+            for (String s : find) {
+                int index = text.indexOf(s);
+                if (index != -1) {
+                    firstIndex = Math.min(firstIndex, index);
+                }
+            }
+
+            if(firstIndex!=Integer.MAX_VALUE){
+                firstSentence = text.substring(0, firstIndex+1);
+                nextSentence = text.substring(firstIndex + 1);
+            }
+
+            if(firstIndex==0){
+                LOGGER.debug("sentences[0] length is 0");
+                attemptToPlay(senderId, text.substring(1),speakerId);
+                return;
+            }
+
+            InputStream oggFile = null;
+            TTSResult result=null;
+            int limit=100;
+            do{
+                result=generator.getIfAlreadyCreated(firstSentence, speakerId);
+                if (result==null) {
+                    if(Minecraft.getInstance().isPaused()||Minecraft.getInstance().level==null){
+                        isPlaying=false;
+                        return;
+                    }
+                    LOGGER.debug("not found in cache");
+                    if(generatorQueue.isEmpty()) {
+                        //一応キューに入れておく
+                        //generatorQueue.add(new Tuple<>(firstSentence, speakerId));
+                    }
+                    Thread.sleep(100);
+                    limit--;
+                }
+                if (limit==0) {
+                    LOGGER.warn("wait for sound generation limit exceeded");
                     isPlaying = false;
+                    return;
                 }
-            }catch (Exception e){
+            }while(result==null);
+
+            try {
+                oggFile = new FileInputStream(result.filename);
+            } catch (IOException e) {
                 e.printStackTrace();
+            }
+            double length = 0;
+            try {
+                length = calculateDuration(oggFile, result.raw_data.length);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Entity sourceEntity;
+            sourceEntity = Minecraft.getInstance().level.getEntity(senderId);
+
+            if (sourceEntity==null || !sourceEntity.isAlive() || sourceEntity.isSpectator()) {
+                isPlaying = false;
+                return;
+            }
+
+            play(senderId, sourceEntity.blockPosition(), result.text, result.filename);
+            //wait
+
+            LOGGER.debug("waiting " + length + "ms");
+            Thread.sleep((long) (length)-50);
+
+            if (nextSentence.length() >0) {
+
+                String remain = nextSentence;
+                LOGGER.debug("generating next sentence:" + remain);
+                //invoke another thread
+                Thread thread = new Thread(() -> {
+                    attemptToPlay(senderId,  remain, speakerId);
+                });
+                thread.start();
+            } else {
                 isPlaying = false;
             }
-            return null;
-        });
+        }catch (Exception e){
+            LOGGER.error("failed to play sound:"+e.toString());
+            isPlaying = false;
+        }
     }
     public void onTick(){
         //has?
-
-        if(!queue.isEmpty()){
+        if(!soundPlayQueue.isEmpty()){
             SoundManager soundManager = Minecraft.getInstance().getSoundManager();
-            soundManager.play(Objects.requireNonNull(queue.poll()));
+            soundManager.play(Objects.requireNonNull(soundPlayQueue.poll()));
             LOGGER.debug("played sound");
         }
     }
@@ -220,7 +284,7 @@ public class SoundPlayer {
 
         //play
         Sound sound = new Sound("test.ogg",
-                new SpeechSampledFloat(0.9f),
+                new SpeechSampledFloat(1.0f),
                 new SpeechSampledFloat(1.0f),
                 1,
                 Sound.Type.FILE,
@@ -236,7 +300,7 @@ public class SoundPlayer {
 
             SoundManager soundManager = Minecraft.getInstance().getSoundManager();
             SoundInstance soundInstance = new SpeechSoundInstance(sound, text, fileloc, 1.0f, 1.0f, pos.getX(), pos.getY(), pos.getZ(), SoundInstance.Attenuation.LINEAR);
-            queue.add(soundInstance);
+            soundPlayQueue.add(soundInstance);
             LOGGER.debug("queued sound");
 
         } catch (IllegalAccessException e) {
@@ -245,5 +309,16 @@ public class SoundPlayer {
 
 
 
+    }
+
+    @Override
+    public void dispose() {
+        generatorThread.interrupt();
+        isDisposed=true;
+    }
+
+    @Override
+    public boolean isDisposed() {
+        return isDisposed;
     }
 }

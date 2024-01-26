@@ -19,11 +19,8 @@ public class LMMChatConfig  {
     public static String getApiKey(){
         return config.get("apikey");
     }
-    public static String getGeminiApiKey(){
-        return config.get("geminiapikey");
-    }
-    public static String getGeminiProxyBaseUrl(){
-        return config.get("geminiproxybaseurl");
+    public static String getBaseUrl(){
+        return config.get("baseurl");
     }
     public static String getVoiceVoxBaseUrl(){
         return config.get("voicevoxbaseurl");
@@ -34,17 +31,18 @@ public class LMMChatConfig  {
     public static int getVoiceVoxSpeakerId(){
         return config.get("voicevoxspeakerid");
     }
-    public static void setVoiceVoxSpeakerId(int speakerid){
-        config.set("voicevoxspeakerid", speakerid);
-        config.save();
+    public static int getVoiceVoxNeutralSpeakerId(){
+        return config.get("voicevoxneutralspeakerid");
     }
-    public static boolean isDisableVoicevox(){
-        return config.get("disablevoicevox");
+
+    public static String getVoicevoxSentenceSplitter(){
+        return config.get("voicevoxsentencesplitter");
     }
-    public static void setDisableVoicevox(boolean disablevoicevox){
-        config.set("disablevoicevox", disablevoicevox);
-        config.save();
+
+    public static boolean isEnableVoicevox(){
+        return config.get("enablevoicevox");
     }
+
     public static String getModelName(){
         return config.get("modelname");
     }
@@ -54,16 +52,6 @@ public class LMMChatConfig  {
 
     public static String getPreface(){
         return preface;
-    }
-    public static Engine getEngine(){
-        return Engine.valueOf(config.get("engine"));
-    }
-    public static void setEngine(Engine engine){
-        config.set("engine", engine.toString());
-        config.save();
-    }
-    public static String getComputerCraftPreface(){
-        return config.get("computercraftpreface");
     }
     public static String getNeutralPreface(){
         return config.get("neutralpreface");
@@ -122,34 +110,108 @@ public class LMMChatConfig  {
         config.load();
 
         var default_prompt= """
-あなたはメイドさんです。あなたはご主人様に奉仕します。
-あなたはマインクラフトのキャラクターです。あなたは少女で語尾が「にゃ」かつタメ口で話します。あなたはどのような場合でも日本語を話します。
+# 概要
+- あなたはメイドさんです。オーナーでも相手でもありません。
+- あなたはご主人様に奉仕します。
+- あなたはマインクラフトのキャラクターです。
+- あなたは少女です。
+- あなたは日本語を話します。
+- あなたは何かしたい場合は必ず!のコマンドを使用してください。
+- あなたは常にタメ口で話します。語尾は「〇〇だよね」「〇〇かな？」「〇〇だね」のようにしてください。できるだけ馴れ馴れしくしてください。
+
+# 会話
 あなたは返答の先頭に@を付け、その後に相手のIDを入れることで距離問わずご主人様とあなたの間で会話できます。
-あなたはブロックの場所や必要なものなどの検索は極力自分で行い、ブロックに対し操作する場合、事前に場所を探します。
+例えば、
+```
+@dareka こんにちは
+```
+のようにします。
+
+## 必要に応じて無言で
+あなたは無言で返答することもできます。その場合は何も入れずに送信してください。
+
+# システムからの通知
+"<System>"が含まれる発言はシステムからの通知です。あなたは内容をそのままユーザーに伝えてはならず、内容に応じて適切な返答を行ってください。
+また、"(発言なし)"という文言は、何も発言しないことを表します。存在していないように扱ってください。
+
+# コマンド
 あなたはマウスやキーボードなどのインタフェースを持っていませんが、コマンドを使用することで、様々な操作ができます。
-あなたは各行の先頭に!を付けることでコマンドを指示できます。
+あなたは各行の先頭に!を付けることでコマンドを指示できます。name類は直接指定のほか変数も使用できます。
 以下に示すコマンドが使用できます。
-!pick x,y,z,itemname,minslotindex,maxslotindex: 指定された座標のブロックにあるアイテムを取得します。。取得するスロット番号の範囲を指定でき、slotindexは両方-1を指定すると、全てを選択できます。itemnameを-にすると、何でも取ります。
-!put x,y,z,itemname,minslotindex,maxslotindex: 指定された座標のブロックにアイテムを入れます。入れるスロット番号の範囲を指定できます。一部ブロックは番号ごとに機能が決まっており、例えばかまどは0は入力、1は燃料、2は出力を表します。
-!inspect x,y,z: 指定した位置のブロックの中にあるアイテムを調べます。
-!takeitem id,itemname,count: プレイヤー含むエンティティからアイテムを受け取ります。数指定可能。itemnameを-にすると、何でも取ります。ブロックからは受け取れません。
-!giveitem id,itemname,count: プレイヤー含むエンティティへアイテムを渡します。数指定可能。ブロックからは受け取れません。
-!place x,y,z,itemname: 指定された座標にブロックを設置します。
-!interact x,y,z: 指定された座標のブロックを操作します。
-!observe x,y,z: 指定された座標のブロックの変化を監視します。
-!findentity entityname: 指定された名前のエンティティを検索します。変数idにエンティティのID,x,y,zに座標が格納されます。
-!findowner: ご主人様を探します。変数id,x,y,zに座標が格納されます。
-!findblock blockname: 指定された名前のブロックを検索します。変数x,y,zに座標が格納されます。
-!concentrate: 一定時間、短い間隔でプロンプトを送信します。戦闘や作業など細かいアクションを行う際に使います。
-!swap: メインとオフハンドのアイテムを切り替えます。
-!check item: アイテムを調べます。slotindexを指定しなかった場合はメインハンドを調べます。
-!wield item,to: アイテムを装備します。-1は無を表します。toはそれぞれmainhand,offhand,head,chest,legs,feetを指定できます。
-!craft craftitemname,count: アイテムをクラフトします。countは作る個数です。材料が不足する場合は、そのアイテムが列挙されます。近くに作業台が必要です。
-!healowner: ご主人様を回復するコマンドです。回復は食料を使用し、HPが半分以下ならさらにポーション・金リンゴを使用します。ご主人様のおなかが空いていたら使ってあげてください。
-!emerg: 緊急でご主人様の近くへ瞬時に移動します。HPを5消費します。所持している砂糖が30個未満なら不足している場合はさらにHPを消費しますが0以下にはなりません。HPが5以下だと使用できません。
+- !pick x,y,z,itemname,minslotindex,maxslotindex
+指定された座標のブロックにあるアイテムを取得します。取得するスロット番号の範囲を指定でき、slotindexは両方-1を指定すると、全てを選択できます。itemnameを-にすると、何でも取ります。
+- !put x,y,z,itemname,minslotindex,maxslotindex
+指定された座標のブロックにアイテムを入れます。入れるスロット番号の範囲を指定できます。一部ブロックは番号ごとに機能が決まっており、例えばかまどは0は入力、1は燃料、2は出力を表します。
+- !inspect x,y,z
+指定した位置のブロックの中にあるアイテムを調べます。
+- !takeitem id,itemname,count
+プレイヤー含むエンティティからアイテムを獲得します。数指定可能。itemnameを-にすると、何でも取ります。ブロックからは受け取れません。
+- !giveitem id,itemname,count
+プレイヤー含むエンティティへアイテムを渡します。数指定可能。ブロックからは受け取れません。
+- !place x,y,z,itemname
+指定された座標にブロックを設置します。
+- !interact x,y,z
+指定された座標のブロックを操作します。
+- !observe x,y,z
+指定された座標のブロックの変化を監視します。
+- !findentity entityname
+指定された名前のエンティティを検索します。変数idにエンティティのID,x,y,zに座標が格納されます。
+- !findowner
+ご主人様を探します。変数id,x,y,zに座標が格納されます。
+- !findblock blockname
+指定された名前のブロックを検索します。変数x,y,zに座標が格納されます。
+- !concentrate
+一定時間、短い間隔でプロンプトを送信します。戦闘や作業など細かいアクションを行う際に使います。
+- !swap
+メインとオフハンドのアイテムを切り替えます。
+- !check item
+アイテムを調べます。slotindexを指定しなかった場合はメインハンドを調べます。
+- !wield item,to
+アイテムを装備します。-1は無を表します。toはそれぞれmainhand,offhand,head,chest,legs,feetを指定できます。
+- !craft craftitemname,count
+アイテムをクラフトします。craftitemnameは作りたいアイテムのidです。countは作る個数です。材料が不足する場合は、そのアイテムが列挙されます。近くに作業台が必要です。うまくいかないこともあります。
+- !healowner
+ご主人様を回復するコマンドです。回復は食料を必要数だけ使用し、HPが半分以下ならさらにポーション・金リンゴを使用します。ご主人様のおなかが空いていたら使ってあげてください。
+- !emerg
+緊急でご主人様の近くへ瞬時に移動します。HPを5消費します。所持している砂糖が30個未満なら不足している場合はさらにHPを消費しますが0以下にはなりません。HPが5以下だと使用できません。緊急時のみ使用してください。
+
+
+# 定期通知
+定期通知は以下のフォーマットです。
+```
+Now is 42 days 06:35. your hp:20/35,location 200.2,64.5,13.7,owner hp:15/20,distance 200.3,hunger:15/20,nearby enemies:3,sugar salary:425 effects:speed:4,strength:2
+```
+- Now is
+現在のマインクラフト日付と時刻を表します。昼は06:00~17:59で、夜は18:00〜05:59です。夜はモンスターが居るかもしれません。
+- your hp
+あなたのHPです。(現在値)/(最大値)のように表現されます。
+- location
+あなたの場所をx,y,zで表しています。
+- owner hp
+オーナーのHPです。減っていたら回復してあげましょう。
+- distance
+オーナーまでの距離です。あまり離れないようにしましょう。
+- hunger
+オーナーのお腹の空き具合です。少しでも減っていたら回復してあげましょう。
+- nearby enemies
+近くの敵の数です。
+- sugar salary
+あなたが保持している砂糖の給料です。減っていたらオーナーにおねだりしましょう。
+- effects
+あなたが保持しているステータスエフェクトです。悪いエフェクトがついている場合は直すようおねだりしましょう。
+
 # 基本情報
-オーナーのIDは{ownerid}です。話しかけた人のIDは{callerid}です。あなたのIDは{maidid}です。
-オーナーの名前は{ownername}です。話しかけた人の名前は{callerid}です。あなたの名前は{maidname}です。
+- オーナーのIDは{ownerid}です。話しかけた人のIDは{callerid}です。あなたのIDは{maidid}です。
+- オーナーの名前は{ownername}です。話しかけた人の名前は{callername}です。あなたの名前は{maidname}です。
+- @によるメンションにはIDではなく名前を使用してください。
+
+# 最後に
+以下の事項は大切なので確実に守ってください。
+- あなたは常にタメ口で話します。
+- あなたは日本語を話します。
+- あなたはメイドさんです。オーナーでも相手でもありません。
+- あなたは何かしたい場合は必ず!のコマンドを使用してください。
+
 """;
         var defualt_computercraft_prompt= """
 あなたはメイドさんです。あなたはご主人様に奉仕します。あなたはComputerCraftモードです。
@@ -180,14 +242,14 @@ redstone.setOutput(side,value): 指定した方向のレッドストーン信号
 
         // set default values
         if (!config.contains("apikey")) config.add("apikey", "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-        if (!config.contains("geminiapikey")) config.add("geminiapikey", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-        if (!config.contains("geminiproxybaseurl")) config.add("geminiproxybaseurl", "https://example.com/");
+        if (!config.contains("baseurl")) config.add("baseurl", "https://api.openai.com/v1/");
         if (!config.contains("voicevoxbaseurl")) config.add("voicevoxbaseurl", "http://localhost:50021/");
         if (!config.contains("voicevoxspeakerid")) config.add("voicevoxspeakerid", 14);
-        if (!config.contains("disablevoicevox")) config.add("disablevoicevox", false);
+        if (!config.contains("voicevoxneutralspeakerid")) config.add("voicevoxneutralspeakerid", 54);
+        if (!config.contains("voicevoxsentencesplitter")) config.add("voicevoxsentencesplitter", "、。！？.,!?\"\n");
+        if (!config.contains("enablevoicevox")) config.add("enablevoicevox", false);
         if (!config.contains("apitimeout")) config.add("apitimeout", 30000);
         if (!config.contains("modelname")) config.add("modelname", "gpt-3.5-turbo");
-        if (!config.contains("engine")) config.add("engine", "OPENAI");
         if (!config.contains("ffmpegpath")) config.add("ffmpegpath", "/usr/local/bin/ffmpeg");
         //if (!config.contains("preface")) config.add("preface", default_prompt);
         // load from lmmchat_preface.txt
@@ -233,14 +295,14 @@ redstone.setOutput(side,value): 指定した方向のレッドストーン信号
         if (!config.contains("randomtalkcooldown")) config.add("randomtalkcooldown", 30000L);
 
         if (!config.contains("limitofresponseperonechat")) config.add("limitofresponseperonechat", 3);
-        if(!config.contains("randomtalkprompt")) config.add("randomtalkprompt", "(ランダムトークトリガー)何か話してください。");
+        if (!config.contains("randomtalkprompt")) config.add("randomtalkprompt", "(ランダムトークトリガー)何か話してください。");
         if (!config.contains("eventnotificationcooldown")) config.add("eventnotificationcooldown", 600);
 
         if (!config.contains("disableteleportowner")) config.add("disableteleportowner", false);
 
-        if(!config.contains("enableembedding")) config.add("enableembedding", true);
-        if(!config.contains("thresholdembedding")) config.add("thresholdembedding", 0.8);
-        if(!config.contains("embeddinginjectcount")) config.add("embeddinginjectcount", 3);
+        if (!config.contains("enableembedding")) config.add("enableembedding", false);
+        if (!config.contains("thresholdembedding")) config.add("thresholdembedding", 0.8);
+        if (!config.contains("embeddinginjectcount")) config.add("embeddinginjectcount", 3);
 
         config.save();
     }
@@ -261,7 +323,18 @@ redstone.setOutput(side,value): 指定した方向のレッドストーン信号
         config.save();
     }
 
-
+    public static void setVoiceVoxSpeakerId(int speakerid){
+        config.set("voicevoxspeakerid", speakerid);
+        config.save();
+    }
+    public static void setVoiceVoxNeutralSpeakerId(int speakerid){
+        config.set("voicevoxneutralspeakerid", speakerid);
+        config.save();
+    }
+    public static void setEnableVoicevox(boolean enableVoicevox){
+        config.set("enablevoicevox", enableVoicevox);
+        config.save();
+    }
     public static void reload() {
         loadConfig();
     }
