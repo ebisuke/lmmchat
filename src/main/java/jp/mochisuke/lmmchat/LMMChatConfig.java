@@ -34,10 +34,13 @@ public class LMMChatConfig  {
     public static int getVoiceVoxNeutralSpeakerId(){
         return config.get("voicevoxneutralspeakerid");
     }
-
+    public static int getVoiceVoxVoiceAdditionalDuration(){
+        return config.get("voicevoxvoiceadditionalduration");
+    }
     public static String getVoicevoxSentenceSplitter(){
         return config.get("voicevoxsentencesplitter");
     }
+
 
     public static boolean isEnableVoicevox(){
         return config.get("enablevoicevox");
@@ -56,7 +59,9 @@ public class LMMChatConfig  {
     public static String getNeutralPreface(){
         return config.get("neutralpreface");
     }
-
+    public static String getNGWord(){
+        return config.get("ngword");
+    }
     public static int getMaxTokens(){
         return config.get("maxtokens");
     }
@@ -247,10 +252,12 @@ redstone.setOutput(side,value): 指定した方向のレッドストーン信号
         if (!config.contains("voicevoxspeakerid")) config.add("voicevoxspeakerid", 14);
         if (!config.contains("voicevoxneutralspeakerid")) config.add("voicevoxneutralspeakerid", 54);
         if (!config.contains("voicevoxsentencesplitter")) config.add("voicevoxsentencesplitter", "、。！？.,!?\"\n");
+        if (!config.contains("voicevoxvoiceadditionalduration")) config.add("voicevoxvoiceadditionalduration", 400);
         if (!config.contains("enablevoicevox")) config.add("enablevoicevox", false);
         if (!config.contains("apitimeout")) config.add("apitimeout", 30000);
         if (!config.contains("modelname")) config.add("modelname", "gpt-3.5-turbo");
         if (!config.contains("ffmpegpath")) config.add("ffmpegpath", "/usr/local/bin/ffmpeg");
+        if (!config.contains("ngword")) config.add("ngword", "(発言なし)");
         //if (!config.contains("preface")) config.add("preface", default_prompt);
         // load from lmmchat_preface.txt
         var file=new File("config/lmmchat_preface.txt");
@@ -333,6 +340,10 @@ redstone.setOutput(side,value): 指定した方向のレッドストーン信号
     }
     public static void setEnableVoicevox(boolean enableVoicevox){
         config.set("enablevoicevox", enableVoicevox);
+        config.save();
+    }
+    public static void setVoiceVoxVoiceAdditionalDuration(int duration){
+        config.set("voicevoxvoiceadditionalduration", duration);
         config.save();
     }
     public static void reload() {

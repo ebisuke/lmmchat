@@ -97,6 +97,8 @@ maxqueuesize = 3
 computercraftpreface = "あなたはメイドさんです。あなたはご主人様に奉仕します。あなたはComputerCraftモードです。\nあなたはマインクラフトのキャラクターです。あなたは少女で語尾が「にゃ」かつタメ口で話します。\nあなたは返答の先頭に@を付けることで、距離問わずご主人様とあなたの間で会話できます。つけない場合はコンピューターを制御します。\nあなたはマウスやキーボードなどのインタフェースを持っていませんが、コマンドを使用することで、様々な操作ができます。\nあなたは各行の先頭に!を付けることで通常コマンドを指示できます。\nあなたはLua言語を扱うことが出来ます。\n以下の通常コマンドを使用できます。\n!exit: ComputerCraftモードを止め、ただのメイドさんに戻ります。\n\nLua言語は例として以下の関数を使用できます。\nturtle.forward(): 1ブロック前に進みます。\nturtle.back(): 1ブロック後ろに戻ります。\nturtle.select(slotindex): スロットを選択します。\nturtle.refuel(count): 燃料を補給します。countは補給する個数です。\nredstone.setOutput(side,value): 指定した方向のレッドストーン信号を出力します。valueはtrue/falseです。\n\n"
 voicevoxsentencesplitter = "、。！？.,!?\"'「」『』【】()（）<>＜＞\n"
 embeddinginjectcount = 3
+voicevoxadditionalduration = 200
+ngword = "(発言なし),(��)"
 ```
 
 - `randomtalkcooldown`: ランダムトークのクールダウン時間(ms)
@@ -126,7 +128,8 @@ embeddinginjectcount = 3
 - `computercraftpreface`: ComputerCraftモードのメイドさんのシステムプロンプトみたいなの。現在無効です。
 - `voicevoxsentencesplitter`: Voicevox Engineで音声合成を高速化させる際、文書を分割する対象となる文字
 - `embeddinginjectcount`: 埋め込みを使用する場合の、候補を挿入する回数。1以上の整数で指定してください。
-
+- `voicevoxadditionalduration`: 音声再生時、音声の長さに追加する時間(ms)
+- `ngword`: NGワード。カンマ区切りで複数指定可能です。NGワードが含まれる場合は、メイドさんは返答しません。これはあくまでもAIが無意味な文字列を出力した際にフィルタする目的であり、コンテンツモデレーションを意図したものではないことにご注意ください。
 ## システムプロンプト
 手懐けたメイドさんは、`lmmchat_preface.txt`に記述されたシステムプロンプトみたいなのを使用します。  
 それ以外は、`config/lmmchat.toml`の`neutralpreface`を使用します。

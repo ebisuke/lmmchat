@@ -28,7 +28,7 @@ apply plugin: 'org.spongepowered.mixin'
 jarJar.enable()
 
 group = 'jp.mochisuke'
-version = '0.0.6'
+version = '0.0.8'
 
 java {
     archivesBaseName = 'lmmchat'

@@ -50,9 +50,14 @@ public abstract class AbstractSpeechGenerator {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-                //transcode to ogg
-                //convert to ogg
+                //create empty .locking file
                 try {
+                    java.nio.file.Files.write(java.nio.file.Paths.get(BASE_DIR+modified_filename+".locking"),"locked".getBytes());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                try {
+
                     LOGGER.debug("ffmpeg path: "+ LMMChatConfig.getFFMPEGPath());
                     ProcessBuilder pb = new ProcessBuilder(LMMChatConfig.getFFMPEGPath(), "-i", BASE_DIR+modified_filename+".wav", "-acodec", "libvorbis", BASE_DIR+modified_filename+".ogg");
                     Process p = pb.start();
@@ -70,6 +75,13 @@ public abstract class AbstractSpeechGenerator {
                 } catch (Exception e) {
                     e.printStackTrace();
                     return null;
+                } finally{
+                    //remove .locking file
+                    try {
+                        java.nio.file.Files.delete(java.nio.file.Paths.get(BASE_DIR+modified_filename+".locking"));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
             callback.apply(null);
@@ -92,7 +104,7 @@ public abstract class AbstractSpeechGenerator {
         String modified_filename=hashstr.replaceAll("[^a-zA-Z0-9\\-]", "_");
         String path=BASE_DIR+modified_filename+".ogg";
         //already generated?
-        if (java.nio.file.Files.exists(java.nio.file.Paths.get(path))) {
+        if (java.nio.file.Files.exists(java.nio.file.Paths.get(path))&& !java.nio.file.Files.exists(java.nio.file.Paths.get(BASE_DIR+modified_filename+".locking"))) {
             //already generated
             //return ogg
             try {

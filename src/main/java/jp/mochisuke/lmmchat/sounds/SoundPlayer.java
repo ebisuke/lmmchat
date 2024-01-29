@@ -71,7 +71,10 @@ public class SoundPlayer implements Disposable {
         }
         for (java.io.File file : files) {
             //remove *.ogg only
-            if (file.isFile() && file.getName().toLowerCase().endsWith(".ogg")) {
+            if (file.isFile() && (
+                    file.getName().toLowerCase().endsWith(".ogg")||
+                    file.getName().toLowerCase().endsWith(".wav"))||
+                    file.getName().toLowerCase().endsWith(".locking")) {
                 file.delete();
             }
         }
@@ -247,7 +250,7 @@ public class SoundPlayer implements Disposable {
             //wait
 
             LOGGER.debug("waiting " + length + "ms");
-            Thread.sleep((long) (length)-50);
+            Thread.sleep((long) (length)+LMMChatConfig.getVoiceVoxVoiceAdditionalDuration());
 
             if (nextSentence.length() >0) {
 

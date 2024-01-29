@@ -157,10 +157,12 @@ public class LMMChatController {
                         var tamable = (TamableAnimal) callee;
                         var owner = Helper.getOwner(tamable);
                         if(owner!=null) {                        //owner.get().getser(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
-                            if(LMMChatConfig.isEnableVoicevox()) {
-                                SynthesisPacketHandler.sendToClient(new SynthesisPacket(callee.getId(), LMMChatConfig.getVoiceVoxSpeakerId(), calleeMessageChat, owner.getUUID()), (ServerPlayer) owner);
+                            if(!isContainNGWord(calleeMessageChat)) {
+                                if (LMMChatConfig.isEnableVoicevox()) {
+                                    SynthesisPacketHandler.sendToClient(new SynthesisPacket(callee.getId(), LMMChatConfig.getVoiceVoxSpeakerId(), calleeMessageChat, owner.getUUID()), (ServerPlayer) owner);
+                                }
+                                owner.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + calleeMessageChat));
                             }
-                            owner.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + calleeMessageChat));
                         }else{
                             logger.info("TALK:owner not found");
                         }
@@ -173,17 +175,18 @@ public class LMMChatController {
                             callee.getCommandSenderWorld().getNearbyPlayers(TargetingConditions.forNonCombat(), callee,/*AABB*/ callee.getBoundingBox().inflate(20)
                             ).forEach(player -> {
                                 //player.displayClientMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + chatData.getCalleeMessage()), true);
-                                if (LMMChatConfig.isEnableVoicevox()) {
-                                    if (player == owner) {
-                                        SynthesisPacketHandler.sendToClient(
-                                                new SynthesisPacket(callee.getId(), LMMChatConfig.getVoiceVoxSpeakerId(), finalCalleeMessage, player.getUUID()), (ServerPlayer) player);
+                                if (!isContainNGWord(finalCalleeMessage)) {
+                                    if (LMMChatConfig.isEnableVoicevox()) {
+                                        if (player == owner) {
+                                            SynthesisPacketHandler.sendToClient(
+                                                    new SynthesisPacket(callee.getId(), LMMChatConfig.getVoiceVoxSpeakerId(), finalCalleeMessage, player.getUUID()), (ServerPlayer) player);
+                                        } else {
+                                            SynthesisPacketHandler.sendToClient(
+                                                    new SynthesisPacket(callee.getId(), LMMChatConfig.getVoiceVoxNeutralSpeakerId(), finalCalleeMessage, player.getUUID()), (ServerPlayer) player);
+                                        }
                                     }
-                                    else{
-                                        SynthesisPacketHandler.sendToClient(
-                                                new SynthesisPacket(callee.getId(), LMMChatConfig.getVoiceVoxNeutralSpeakerId(), finalCalleeMessage, player.getUUID()), (ServerPlayer) player);
-                                    }
+                                    player.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + finalCalleeMessage));
                                 }
-                                player.sendSystemMessage(Component.nullToEmpty(callee.getDisplayName().getString() + ":" + finalCalleeMessage));
 
                             });
                         }
@@ -205,6 +208,15 @@ public class LMMChatController {
             }
 
         }
+    }
+    private static boolean isContainNGWord(String text){
+        String[] ngwords=LMMChatConfig.getNGWord().split(",");
+        for(var ngword:ngwords){
+            if(text.contains(ngword)){
+                return true;
+            }
+        }
+        return false;
     }
     public static void synthesis(int sourceId,int speakerId, String text){
 
